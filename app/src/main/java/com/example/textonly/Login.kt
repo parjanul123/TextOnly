@@ -1,3 +1,4 @@
+package com.example.textonly
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
@@ -8,7 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.textonly.R
-import com.example.textonly.chat.ChatActivity
+import com.example.textonly.ChatActivity
 
 
 class Login : AppCompatActivity() {

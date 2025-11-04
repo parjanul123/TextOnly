@@ -1,4 +1,4 @@
-package com.example.textonly.chat
+package com.example.textonly
 
 import android.os.Bundle
 import android.widget.Toast
@@ -6,7 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.textonly.R
-import com.example.textonly.chat.ChatListAdapter
+import com.example.textonly.ChatListAdapter
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import android.widget.TextView
 
