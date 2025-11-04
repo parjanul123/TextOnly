@@ -10,6 +10,24 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.TextOnly" />
+        android:theme="@style/Theme.TextOnly"
+        tools:targetApi="31">
+
+        <!-- ✅ Ecranul de start (Login) -->
+        <activity
+            android:name=".Login"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ✅ Ecranul principal (ChatActivity) -->
+        <activity
+            android:name=".chat.ChatActivity"
+            android:exported="false" />
+
+    </application>
 
 </manifest>
