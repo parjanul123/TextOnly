@@ -7,11 +7,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.textonly.R
 
-class ChatListAdapter(private val chatList: List<String>) :
+class ChatListAdapter(private val chatList: List<Contact>) :
     RecyclerView.Adapter<ChatListAdapter.ChatViewHolder>() {
 
     class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val chatTitle: TextView = itemView.findViewById(R.id.chatTitle)
+        val chatPhone: TextView = itemView.findViewById(R.id.chatPhone)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
@@ -21,7 +22,9 @@ class ChatListAdapter(private val chatList: List<String>) :
     }
 
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
-        holder.chatTitle.text = chatList[position]
+        val contact = chatList[position]
+        holder.chatTitle.text = contact.name
+        holder.chatPhone.text = contact.phone
     }
 
     override fun getItemCount(): Int = chatList.size

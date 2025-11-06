@@ -5,15 +5,13 @@
     android:layout_height="match_parent"
     android:background="#121212">
 
-    <!-- Lista de chat-uri -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerChats"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="8dp"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
-    <!-- Text afișat când lista e goală -->
     <TextView
         android:id="@+id/txtEmpty"
         android:layout_width="wrap_content"
@@ -21,9 +19,8 @@
         android:text="Această pagină este goală"
         android:textColor="@android:color/white"
         android:textSize="18sp"
-        android:layout_centerInParent="true"/>
+        android:layout_centerInParent="true" />
 
-    <!-- Buton + pentru conversație nouă -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddChat"
         android:layout_width="wrap_content"
@@ -31,8 +28,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_margin="20dp"
-        android:contentDescription="Adaugă chat"
         app:srcCompat="@android:drawable/ic_input_add"
         app:tint="@android:color/white"
-        app:backgroundTint="@color/purple_500"/>
+        app:backgroundTint="@color/purple_500" />
 </RelativeLayout>

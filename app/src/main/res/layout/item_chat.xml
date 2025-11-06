@@ -10,8 +10,17 @@
         android:id="@+id/chatTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Nume conversație"
+        android:text="Nume contact"
         android:textSize="16sp"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/chatPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Număr de telefon"
+        android:textSize="14sp"
+        android:textColor="#AAAAAA" />
 
 </LinearLayout>
