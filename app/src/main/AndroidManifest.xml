@@ -2,8 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permisiune pentru contactele din telefon -->
+    <!-- Permisiune pentru citirea contactelor (folosită în ChatActivity) -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <!-- Aplicația suportă toate dimensiunile și densitățile de ecran -->
+    <supports-screens
+        android:smallScreens="true"
+        android:normalScreens="true"
+        android:largeScreens="true"
+        android:xlargeScreens="true"
+        android:anyDensity="true" />
 
     <application
         android:allowBackup="true"
@@ -13,18 +21,43 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.TextOnly">
+        android:resizeableActivity="true"
+        android:theme="@style/Theme.TextOnly"
+        tools:targetApi="31">
 
-        <activity android:name=".chat.ChatActivity" android:exported="false" />
-
+        <!-- Activitatea principală (Login) -->
         <activity
-            android:name=".chat.Login"
-            android:exported="true">
+            android:name=".Login"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Activitatea Chat -->
+        <activity
+            android:name=".ChatActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="true"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout" />
+
+        <!-- Activitatea pentru cumpărarea OnlyCoins -->
+        <activity
+            android:name=".BuyOnlycoinsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Activitatea pentru scanare coduri QR -->
+        <activity
+            android:name=".ScanQRActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|smallestScreenSize"
+            android:resizeableActivity="true" />
 
     </application>
 

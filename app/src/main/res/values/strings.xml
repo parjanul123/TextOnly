@@ -1,3 +1,6 @@
 <resources>
-    <string name="app_name">TextOnly</string>
+    <string-array name="onlycoins">
+        <item>România (RON)</item>
+        <item>Uniunea Europeană (EUR)</item>
+    </string-array>
 </resources>
