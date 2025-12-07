@@ -16,4 +16,3 @@ CMD ["turnserver",
 "--lt-cred-mech",
 "--fingerprint",
 "--verbose"]
-
