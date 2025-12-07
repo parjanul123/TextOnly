@@ -7,12 +7,12 @@ EXPOSE 5349
 
 # Pornește Coturn cu setări simple
 CMD ["turnserver",
-    "--no-cli",
-    "--no-tls",
-    "--no-dtls",
-    "--listening-port", "3478",
-    "--realm", "textonly.onrender.com",
-    "--user", "demo:demo1234",
-    "--lt-cred-mech",
-    "--fingerprint",
-    "--verbose"]
+"--no-cli",
+"--no-tls",
+"--no-dtls",
+"--listening-port", "3478",
+"--realm", "textonly.onrender.com",
+"--user", "demo:demo1234",
+"--lt-cred-mech",
+"--fingerprint",
+"--verbose"]
