@@ -1,4 +1,5 @@
 package com.example.textonly
+
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
@@ -8,41 +9,49 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.textonly.R
-import com.example.textonly.ChatActivity
-
 
 class Login : AppCompatActivity() {
+
+    private lateinit var statusText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        // Referință la buton
         val loginButton = findViewById<Button>(R.id.btnLogin)
-        val statusText = findViewById<TextView>(R.id.txtStatus)
+        statusText = findViewById(R.id.txtStatus)
 
-        // Când utilizatorul apasă pe butonul „Conectează-te”
         loginButton.setOnClickListener {
             statusText.text = "Verific autentificarea..."
-            authenticateUser()
+            checkBiometricOrSkip()
         }
     }
 
-    private fun authenticateUser() {
+    private fun checkBiometricOrSkip() {
         val biometricManager = BiometricManager.from(this)
 
         when (biometricManager.canAuthenticate(
-            BiometricManager.Authenticators.BIOMETRIC_WEAK or
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                    BiometricManager.Authenticators.BIOMETRIC_WEAK or
                     BiometricManager.Authenticators.DEVICE_CREDENTIAL
         )) {
-            BiometricManager.BIOMETRIC_SUCCESS -> showBiometricPrompt()
-            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE ->
-                Toast.makeText(this, "Dispozitivul nu are senzor biometric", Toast.LENGTH_LONG).show()
-            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED ->
-                Toast.makeText(this, "Nu este configurată amprenta sau PIN-ul", Toast.LENGTH_LONG).show()
-            else ->
-                Toast.makeText(this, "Autentificarea nu este disponibilă", Toast.LENGTH_LONG).show()
+            BiometricManager.BIOMETRIC_SUCCESS -> {
+                // ✅ Are senzor sau PIN — afișăm dialogul biometric
+                showBiometricPrompt()
+            }
+
+            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED,
+            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE,
+            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
+                // ⚙️ Dacă nu are nicio metodă de securitate → intră direct
+                Toast.makeText(this, "Fără autentificare biometrică — acces direct ✅", Toast.LENGTH_SHORT).show()
+                goToChat()
+            }
+
+            else -> {
+                // Orice alt caz neașteptat → acces direct
+                goToChat()
+            }
         }
     }
 
@@ -54,13 +63,14 @@ class Login : AppCompatActivity() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
                     Toast.makeText(applicationContext, "Autentificare reușită ✅", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this@Login, ChatActivity::class.java))
-                    finish()
+                    goToChat()
                 }
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
-                    Toast.makeText(applicationContext, "Eroare: $errString", Toast.LENGTH_SHORT).show()
+                    // Dacă utilizatorul apasă “Anulează”, îl lăsăm să intre oricum
+                    Toast.makeText(applicationContext, "Autentificare omisă", Toast.LENGTH_SHORT).show()
+                    goToChat()
                 }
 
                 override fun onAuthenticationFailed() {
@@ -71,13 +81,20 @@ class Login : AppCompatActivity() {
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
             .setTitle("Autentificare necesară")
-            .setSubtitle("Folosește amprenta, PIN-ul sau modelul telefonului")
+            .setSubtitle("Folosește amprenta, PIN-ul sau modelul dispozitivului")
+            // 🔹 Dacă nu are biometric, permite și PIN-ul (DEVICE_CREDENTIAL)
             .setAllowedAuthenticators(
-                BiometricManager.Authenticators.BIOMETRIC_WEAK or
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or
                         BiometricManager.Authenticators.DEVICE_CREDENTIAL
             )
             .build()
 
         biometricPrompt.authenticate(promptInfo)
+    }
+
+    private fun goToChat() {
+        val intent = Intent(this, ChatActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 }
