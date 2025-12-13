@@ -1,0 +1,10 @@
+d:\TextOnly\web\backend\src\main\java\com\textonly\backend\service\AuthService.java
+d:\TextOnly\web\backend\src\main\java\com\textonly\backend\controller\AuthController.java
+d:\TextOnly\web\backend\src\main\java\com\textonly\backend\TextOnlyBackendApplication.java
+d:\TextOnly\web\backend\src\main\java\com\textonly\backend\service\ChatService.java
+d:\TextOnly\web\backend\src\main\java\com\textonly\backend\model\User.java
+d:\TextOnly\web\backend\src\main\java\com\textonly\backend\repository\UserRepository.java
+d:\TextOnly\web\backend\src\main\java\com\textonly\backend\model\Message.java
+d:\TextOnly\web\backend\src\main\java\com\textonly\backend\controller\ChatController.java
+d:\TextOnly\web\backend\src\main\java\com\textonly\backend\repository\MessageRepository.java
+d:\TextOnly\web\backend\src\main\java\com\textonly\backend\controller\UserController.java
