@@ -51,6 +51,18 @@ dependencies {
 
     // ✅ Guava
     implementation("com.google.guava:guava:31.1-android")
+    // ✅ ZXing pentru scanare QR
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    // ✅ Java-WebSocket pentru comunicare WebSocket
+    implementation("org.java-websocket:Java-WebSocket:1.5.4")
+    // ✅ STOMP pentru mesagerie în timp real
+    implementation("com.github.NaikSoftware:StompProtocolAndroid:1.6.6")
+    // ✅ RxJava și RxAndroid pentru STOMP
+    implementation("io.reactivex.rxjava2:rxjava:2.2.21")
+    implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
+
+    // ✅ Networking (OkHttp)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // ✅ Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.4.0"))

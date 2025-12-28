@@ -1,6 +1,8 @@
 package com.example.textonly
 
 import android.Manifest
+import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -14,9 +16,13 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import java.io.IOException
 import java.util.concurrent.Executors
 
 class ScanQRActivity : ComponentActivity() {
@@ -24,9 +30,11 @@ class ScanQRActivity : ComponentActivity() {
     private lateinit var previewView: PreviewView
     private lateinit var statusText: TextView
     private val executor = Executors.newSingleThreadExecutor()
-    private val firestore = FirebaseFirestore.getInstance()
+    private val client = OkHttpClient()
 
-    // ✅ Launcher modern pentru permisiune
+    // 🔴 URL-ul Backend-ului de pe Render
+    private val BACKEND_URL = "https://textonly-backend-web.onrender.com"
+
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) startCamera()
@@ -68,7 +76,14 @@ class ScanQRActivity : ComponentActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
+    private var isProcessing = false
+
     private fun processImageProxy(scanner: com.google.mlkit.vision.barcode.BarcodeScanner, imageProxy: ImageProxy) {
+        if (isProcessing) {
+            imageProxy.close()
+            return
+        }
+
         val mediaImage = imageProxy.image
         if (mediaImage != null) {
             val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
@@ -77,10 +92,11 @@ class ScanQRActivity : ComponentActivity() {
                     for (barcode in barcodes) {
                         val qrValue = barcode.rawValue
                         if (qrValue != null) {
+                            isProcessing = true
                             runOnUiThread {
-                                statusText.text = "Cod detectat: $qrValue"
+                                statusText.text = "Cod detectat..."
                             }
-                            uploadToFirebase(qrValue)
+                            sendTokenToBackend(qrValue)
                         }
                     }
                 }
@@ -95,20 +111,42 @@ class ScanQRActivity : ComponentActivity() {
         }
     }
 
-    private fun uploadToFirebase(token: String) {
-        firestore.collection("qr_sessions")
-            .document(token)
-            .set(mapOf("uid" to "user123", "timestamp" to System.currentTimeMillis()))
-            .addOnSuccessListener {
+    private fun sendTokenToBackend(token: String) {
+        // Obținem numărul de telefon salvat (sau folosim unul default pentru testare)
+        val prefs: SharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val phoneNumber = prefs.getString("phoneNumber", "0712345678") ?: "0712345678"
+
+        val json = JSONObject()
+        json.put("token", token)
+        json.put("phoneNumber", phoneNumber)
+
+        Log.d("QR_LOGIN", "Sending: $json to $BACKEND_URL/api/auth/qr/validate")
+
+        val requestBody = json.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+        val request = Request.Builder()
+            .url("$BACKEND_URL/api/auth/qr/validate")
+            .post(requestBody)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    Toast.makeText(this, "Cod trimis în Firebase ✅", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ScanQRActivity, "Eroare conexiune: ${e.message}", Toast.LENGTH_SHORT).show()
+                    isProcessing = false
                 }
-                finish()
             }
-            .addOnFailureListener {
+
+            override fun onResponse(call: Call, response: Response) {
                 runOnUiThread {
-                    Toast.makeText(this, "Eroare Firebase ❌", Toast.LENGTH_SHORT).show()
+                    if (response.isSuccessful) {
+                        Toast.makeText(this@ScanQRActivity, "Conectare Desktop Reușită! ✅", Toast.LENGTH_LONG).show()
+                        finish()
+                    } else {
+                        Toast.makeText(this@ScanQRActivity, "Eroare server: ${response.code}", Toast.LENGTH_SHORT).show()
+                        isProcessing = false
+                    }
                 }
             }
+        })
     }
 }

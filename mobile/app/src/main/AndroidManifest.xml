@@ -95,6 +95,12 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:usesCleartextTraffic="true" />
 
+        <!-- 👤 Profil Utilizator -->
+        <activity
+            android:name="com.example.qrlogin.ProfileActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
     </application>
 
 </manifest>

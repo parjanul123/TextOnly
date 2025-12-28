@@ -1,43 +1,32 @@
 package com.textonly.backend.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.util.*;
+import com.textonly.backend.model.User;
+import com.textonly.backend.repository.UserRepository;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@CrossOrigin(origins = "*") // permite accesul și din Android / web
 public class UserController {
 
-    // Simulăm o listă de utilizatori în memorie
-    private final List<Map<String, String>> users = new ArrayList<>();
+    @Autowired
+    private UserRepository userRepository;
 
-    // ✅ Obține toți utilizatorii
     @GetMapping
-    public List<Map<String, String>> getUsers() {
-        return users;
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
-    // ✅ Creează un utilizator nou
     @PostMapping
-    public String createUser(@RequestBody Map<String, String> body) {
-        String username = body.get("username");
-        String email = body.get("email");
-
-        if (username == null || username.isEmpty()) {
-            return "Eroare: numele utilizatorului este gol ❌";
-        }
-
-        Map<String, String> user = new HashMap<>();
-        user.put("username", username);
-        user.put("email", email != null ? email : "necunoscut");
-        users.add(user);
-
-        return "Utilizator creat: " + username;
+    public User addUser(@RequestBody User user) {
+        return userRepository.save(user);
     }
 
-    // ✅ Șterge un utilizator după nume
-    @DeleteMapping("/{username}")
-    public String deleteUser(@PathVariable String username) {
-        boolean removed = users.removeIf(user -> user.get("username").equals(username));
-        return removed ? "Utilizator șters: " + username : "Utilizatorul nu există ❌";
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable Long id) {
+        return userRepository.findById(id).orElse(null);
     }
 }

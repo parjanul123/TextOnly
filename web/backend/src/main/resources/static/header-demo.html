@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Header cu Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1976d2;
+            color: #fff;
+            padding: 10px 20px;
+        }
+        .header-title { font-size: 1.3em; }
+        .settings-menu {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: #fff;
+            color: #333;
+            min-width: 140px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 1;
+        }
+        .dropdown-content a {
+            color: #333;
+            padding: 10px 16px;
+            text-decoration: none;
+            display: block;
+        }
+        .dropdown-content a:hover { background: #f0f0f0; }
+        .settings-menu:hover .dropdown-content { display: block; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <span class="header-title">Titlu aplicație</span>
+    <div class="settings-menu">
+        <i class="fa fa-cog fa-lg"></i>
+        <div class="dropdown-content">
+            <a href="#" onclick="goToProfile()">Profil</a>
+        </div>
+    </div>
+</div>
+<div id="qr-section" style="margin:40px 0; text-align:center;">
+    <h3>Scanează acest cod QR cu aplicația de pe telefon pentru autentificare</h3>
+    <div id="qrcode"></div>
+    <div id="status"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script>
+// La prima accesare, generează și afișează codul QR pentru login
+fetch('/api/auth/qr', {method: 'POST'})
+  .then(res => res.json())
+  .then(data => {
+    const token = data.token;
+    QRCode.toCanvas(document.getElementById('qrcode'), token);
+    // Polling pentru status
+    const poll = setInterval(() => {
+      fetch('/api/auth/qr/status/' + token)
+        .then(res => res.json())
+        .then(validated => {
+          if (validated) {
+            document.getElementById('status').innerText = 'Autentificare reușită!';
+            clearInterval(poll);
+            // TODO: Redirecționează/loghează userul
+          }
+        });
+    }, 2000);
+  });
+function goToProfile() {
+    // Navighează la pagina de profil
+    window.location.href = 'profile.html';
+}
+</script>
+</body>
+</html>

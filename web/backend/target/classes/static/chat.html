@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>TextOnly - Chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            padding: 12px 20px 8px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+        .header-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #222;
+        }
+        .settings-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+        .search-bar {
+            width: calc(100% - 40px);
+            margin: 16px 20px 8px 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .chat-list {
+            margin: 0 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            padding: 0;
+            list-style: none;
+            min-height: 200px;
+        }
+        .chat-list li {
+            padding: 16px 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .chat-list li:last-child { border-bottom: none; }
+        .chat-list .avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: #1976d2;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        .chat-list .chat-info { flex: 1; }
+        .chat-list .chat-name { font-weight: bold; color: #222; }
+        .chat-list .last-message { color: #888; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="header-title">TextOnly</span>
+        <button class="settings-btn" onclick="goToProfile()">
+            <i class="fa fa-cog fa-lg"></i>
+        </button>
+    </div>
+    <input class="search-bar" type="text" placeholder="Caută conversații..." id="searchBar" />
+    <ul class="chat-list" id="chatList">
+        <!-- Chat-urile vor fi încărcate aici din backend -->
+    </ul>
+    <script>
+    function goToProfile() {
+        window.location.href = 'profile.html';
+    }
+    // Exemplu de încărcare conversații (mock)
+    const chats = [
+        { name: 'Andrei Pop', last: 'Salut! Ce faci?', avatar: 'A' },
+        { name: 'Maria Ionescu', last: 'Ne vedem la 7?', avatar: 'M' },
+        { name: 'Grup Prieteni', last: 'Azi e party!', avatar: 'G' }
+    ];
+    function renderChats(list) {
+        const ul = document.getElementById('chatList');
+        ul.innerHTML = '';
+        list.forEach(chat => {
+            const li = document.createElement('li');
+            li.innerHTML = `<div class="avatar">${chat.avatar}</div><div class="chat-info"><div class="chat-name">${chat.name}</div><div class="last-message">${chat.last}</div></div>`;
+            ul.appendChild(li);
+        });
+    }
+    renderChats(chats);
+    document.getElementById('searchBar').addEventListener('input', function() {
+        const val = this.value.toLowerCase();
+        renderChats(chats.filter(c => c.name.toLowerCase().includes(val)));
+    });
+    </script>
+</body>
+</html>

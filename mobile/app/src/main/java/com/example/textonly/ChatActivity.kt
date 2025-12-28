@@ -4,12 +4,15 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.qrlogin.ToolbarMenuHandler
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ChatActivity : AppCompatActivity() {
@@ -18,6 +21,7 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var txtEmpty: TextView
     private lateinit var searchBar: EditText
     private lateinit var fabAddChat: FloatingActionButton
+    private lateinit var btnSettings: ImageButton
 
     private lateinit var contactsHelper: ContactsHelper
     private var chatList = mutableListOf<Contact>()
@@ -66,6 +70,10 @@ class ChatActivity : AppCompatActivity() {
         txtEmpty = findViewById(R.id.txtEmpty)
         searchBar = findViewById(R.id.searchBar)
         fabAddChat = findViewById(R.id.fabAddChat)
+        btnSettings = findViewById(R.id.btnSettings)
+
+        // Setup Toolbar Menu using ToolbarMenuHandler
+        ToolbarMenuHandler.setupToolbar(this, null, btnSettings)
 
         // 🔹 Încarcă lista de contacte salvate în aplicație
         chatList = contactsHelper.getContacts().toMutableList()

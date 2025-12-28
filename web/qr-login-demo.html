@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QR Login Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</head>
+<body>
+    <h2>Scanează acest cod QR cu aplicația de pe telefon pentru login</h2>
+    <div id="qrcode"></div>
+    <div id="status"></div>
+    <script>
+    // Generează token QR de la backend
+    fetch('/api/auth/qr', {method: 'POST'})
+      .then(res => res.json())
+      .then(data => {
+        const token = data.token;
+        QRCode.toCanvas(document.getElementById('qrcode'), token);
+        // Polling pentru status
+        const poll = setInterval(() => {
+          fetch('/api/auth/qr/status/' + token)
+            .then(res => res.json())
+            .then(validated => {
+              if (validated) {
+                document.getElementById('status').innerText = 'Autentificare reușită!';
+                clearInterval(poll);
+                // TODO: Redirecționează/loghează userul
+              }
+            });
+        }, 2000);
+      });
+    </script>
+</body>
+</html>
