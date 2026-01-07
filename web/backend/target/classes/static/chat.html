@@ -103,5 +103,23 @@
         renderChats(chats.filter(c => c.name.toLowerCase().includes(val)));
     });
     </script>
+        <button id="ask-gpt" style="margin:20px; padding:10px 20px; background:#1976d2; color:#fff; border:none; border-radius:8px; cursor:pointer;">Întreabă ChatGPT</button>
+        <div id="gpt-response" style="margin:20px; background:#fff; border-radius:8px; padding:10px; min-height:40px;"></div>
 </body>
 </html>
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/chatgpt-sw.js');
+}
+document.getElementById('ask-gpt').onclick = async function() {
+    const responseDiv = document.getElementById('gpt-response');
+    responseDiv.textContent = 'Așteaptă răspunsul...';
+    const resp = await fetch('/chatgpt-proxy', { method: 'POST' });
+    try {
+        const data = await resp.json();
+        responseDiv.textContent = data.choices?.[0]?.message?.content || JSON.stringify(data);
+    } catch (e) {
+        responseDiv.textContent = 'Eroare la procesarea răspunsului GPT.';
+    }
+}
+</script>

@@ -1,5 +1,6 @@
 package com.example.qrlogin;
 
+import com.example.textonly.Config;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,12 +13,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class QrLoginActivity extends Activity {
-    private String phoneNumber = ""; // Setează numărul de telefon autentificat
+    private String phoneNumber = ""; 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Pornește scanarea QR
         new IntentIntegrator(this).initiateScan();
     }
 
@@ -26,7 +26,6 @@ public class QrLoginActivity extends Activity {
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if(result != null && result.getContents() != null) {
             String token = result.getContents();
-            // Trimite token + phoneNumber la backend
             sendTokenToBackend(token, phoneNumber);
         } else {
             Toast.makeText(this, "Scanare anulată", Toast.LENGTH_SHORT).show();
@@ -37,9 +36,8 @@ public class QrLoginActivity extends Activity {
     private void sendTokenToBackend(String token, String phoneNumber) {
         new Thread(() -> {
             try {
-                // TODO: Update this URL with your actual backend URL from Render
-                // Example: https://textonly-backend-web.onrender.com/api/auth/qr/validate
-                URL url = new URL("https://textonly-backend-web.onrender.com/api/auth/qr/validate");
+                // Folosim URL-ul din Config (Ngrok)
+                URL url = new URL(Config.QR_VALIDATE_URL);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");

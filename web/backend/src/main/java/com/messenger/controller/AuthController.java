@@ -9,6 +9,18 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+            // POST /api/auth/qr/logout - invalidează ultima sesiune QR validată
+            @PostMapping("/qr/logout")
+            public void logoutQrSession() {
+                qrService.logoutLastValidatedSession();
+            }
+    // GET /api/auth/qr/session?token=... - returnează numărul de telefon pentru tokenul QR dat
+    @GetMapping("/qr/session")
+    public Map<String, String> getQrSessionPhone(@RequestParam String token) {
+        QrSession session = qrService.getSessionByToken(token);
+        String phone = (session != null && session.isValidated()) ? session.getPhoneNumber() : null;
+        return Map.of("phoneNumber", phone);
+    }
     @Autowired
     private QrService qrService;
 

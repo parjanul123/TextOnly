@@ -15,27 +15,54 @@
     <div class="centered">
         <h2>Scanează acest cod QR cu aplicația de pe telefon pentru login</h2>
         <div id="qrcode"></div>
+        <button id="downloadQR" style="display:none;margin-bottom:20px;">Descarcă QR</button>
         <div id="status"></div>
     </div>
     <script>
+    // Funcție care detectează dacă QR-ul a fost scanat și login-ul a reușit
+    function checkQrScanned(token, onSuccess) {
+        const poll = setInterval(() => {
+            fetch('/api/auth/qr/status/' + token)
+                .then(res => res.json())
+                .then(validated => {
+                    if (validated) {
+                        clearInterval(poll);
+                        if (typeof onSuccess === 'function') onSuccess();
+                    }
+                });
+        }, 2000);
+    }
+
     // Generează token QR de la backend
     fetch('/api/auth/qr', {method: 'POST'})
       .then(res => res.json())
       .then(data => {
         const token = data.token;
-        QRCode.toCanvas(document.getElementById('qrcode'), token);
-        // Polling pentru status
-        const poll = setInterval(() => {
-          fetch('/api/auth/qr/status/' + token)
-            .then(res => res.json())
-            .then(validated => {
-              if (validated) {
-                document.getElementById('status').innerText = 'Autentificare reușită!';
-                clearInterval(poll);
-                // TODO: Redirecționează/loghează userul
-              }
-            });
-        }, 2000);
+        sessionStorage.setItem('qrToken', token);
+        console.log('TOKEN QR:', token);
+        // Pentru deep link corect:
+        const qrLink = `textonly://login?token=${token}`;
+        const canvas = document.createElement('canvas');
+        QRCode.toCanvas(canvas, qrLink, function (error) {
+          if (!error) {
+            document.getElementById('qrcode').appendChild(canvas);
+            const btn = document.getElementById('downloadQR');
+            btn.style.display = 'block';
+            btn.onclick = function() {
+              const link = document.createElement('a');
+              link.download = 'qr-login.png';
+              link.href = canvas.toDataURL();
+              link.click();
+            };
+          }
+        });
+        // Folosește funcția pentru polling și redirect
+        checkQrScanned(token, function() {
+            document.getElementById('status').innerText = 'Autentificare reușită!';
+            setTimeout(() => {
+                window.location.href = 'chat.html';
+            }, 1000);
+        });
       });
     </script>
 </body>

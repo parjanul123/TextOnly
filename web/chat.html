@@ -7,101 +7,85 @@
     <style>
         body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; }
         .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #fff;
-            padding: 12px 20px 8px 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-        }
-        .header-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #222;
-        }
-        .settings-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-        }
-        .search-bar {
-            width: calc(100% - 40px);
-            margin: 16px 20px 8px 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 16px;
-        }
-        .chat-list {
-            margin: 0 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-            padding: 0;
-            list-style: none;
-            min-height: 200px;
-        }
-        .chat-list li {
-            padding: 16px 12px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-        }
-        .chat-list li:last-child { border-bottom: none; }
-        .chat-list .avatar {
-            width: 36px; height: 36px;
-            border-radius: 50%;
+            <div class="header">
+                <span class="header-title">TextOnly</span>
+                <button class="settings-btn" onclick="goToProfile()">
+                    <i class="fa fa-cog fa-lg"></i>
+                </button>
+                <button style="margin-left:16px; background:#b71c1c; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;" onclick="logout()">Logout</button>
+            </div>
+            <div style="padding: 0 16px;">
+                <input class="search-bar" type="text" placeholder="Caută conversații..." id="searchBar" />
+                <ul class="chat-list" id="chatList"></ul>
+                <div id="emptyMsg" class="empty-msg" style="display:none;">Nu există conversații</div>
+            </div>
+            <script>
+                    function logout() {
+                            fetch('/api/auth/qr/logout', {method: 'POST'})
+                                .then(() => window.location.href = 'login.html');
+                    }
+            function goToProfile() {
+                window.location.href = 'profile.html';
+            }
+                        // Verifică tokenul QR din sessionStorage
+                        const qrToken = sessionStorage.getItem('qrToken');
+                        if (!qrToken) {
+                                window.location.href = 'login.html';
+                        } else {
+                                // Validează tokenul la backend și preia datele doar dacă e validat
+                                fetch('/api/auth/qr/status/' + qrToken)
+                                    .then(res => res.json())
+                                    .then(validated => {
+                                        if (!validated) {
+                                                window.location.href = 'login.html';
+                                                return;
+                                        }
+                                        // Preia numărul de telefon asociat tokenului validat
+                                        fetch('/api/auth/qr/session?token=' + qrToken)
+                                            .then(res => res.json())
+                                            .then(data => {
+                                                const phoneNumber = data.phoneNumber;
+                                                if (!phoneNumber) {
+                                                        window.location.href = 'login.html';
+                                                        return;
+                                                }
+                                                // Preia conversațiile reale pentru utilizatorul logat
+                                                fetch('/api/messages/' + phoneNumber)
+                                                    .then(res => res.json())
+                                                    .then(chats => {
+                                                        renderChats(chats);
+                                                    });
+                                            });
+                                    });
+                        }
+            function renderChats(list) {
+                const ul = document.getElementById('chatList');
+                ul.innerHTML = '';
+                if (!list || list.length === 0) {
+                    document.getElementById('emptyMsg').style.display = 'block';
+                } else {
+                    document.getElementById('emptyMsg').style.display = 'none';
+                    list.forEach(chat => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<div class="avatar">${chat.from[0]}</div><div class="chat-info"><div class="chat-name">${chat.from}</div><div class="last-message">${chat.content}</div></div>`;
+                        ul.appendChild(li);
+                    });
+                }
+            }
+            document.getElementById('searchBar').addEventListener('input', function() {
+                const val = this.value.toLowerCase();
+                // Filtrare locală după nume sau conținut
+                const items = Array.from(document.querySelectorAll('.chat-list li'));
+                items.forEach(li => {
+                    li.style.display = li.textContent.toLowerCase().includes(val) ? '' : 'none';
+                });
+            });
+            </script>
             background: #1976d2;
             color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-right: 12px;
-            font-size: 18px;
-        }
-        .chat-list .chat-info { flex: 1; }
-        .chat-list .chat-name { font-weight: bold; color: #222; }
-        .chat-list .last-message { color: #888; font-size: 14px; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <span class="header-title">TextOnly</span>
-        <button class="settings-btn" onclick="goToProfile()">
-            <i class="fa fa-cog fa-lg"></i>
-        </button>
-    </div>
-    <input class="search-bar" type="text" placeholder="Caută conversații..." id="searchBar" />
-    <ul class="chat-list" id="chatList">
-        <!-- Chat-urile vor fi încărcate aici din backend -->
-    </ul>
-    <script>
-    function goToProfile() {
-        window.location.href = 'profile.html';
-    }
-    // Exemplu de încărcare conversații (mock)
-    const chats = [
-        { name: 'Andrei Pop', last: 'Salut! Ce faci?', avatar: 'A' },
-        { name: 'Maria Ionescu', last: 'Ne vedem la 7?', avatar: 'M' },
-        { name: 'Grup Prieteni', last: 'Azi e party!', avatar: 'G' }
-    ];
-    function renderChats(list) {
-        const ul = document.getElementById('chatList');
-        ul.innerHTML = '';
-        list.forEach(chat => {
-            const li = document.createElement('li');
-            li.innerHTML = `<div class="avatar">${chat.avatar}</div><div class="chat-info"><div class="chat-name">${chat.name}</div><div class="last-message">${chat.last}</div></div>`;
-            ul.appendChild(li);
-        });
-    }
-    renderChats(chats);
-    document.getElementById('searchBar').addEventListener('input', function() {
-        const val = this.value.toLowerCase();
-        renderChats(chats.filter(c => c.name.toLowerCase().includes(val)));
-    });
-    </script>
-</body>
-</html>
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+                <h2>Accesul la chat nu este permis fără autentificare QR!</h2>
+                <p>Te rugăm să te autentifici cu telefonul pentru a vedea conversațiile reale.</p>
+                <button onclick="window.location.href='login.html'">Autentificare QR</button>
+            </div>
+            font-size: 20px;

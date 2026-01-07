@@ -27,7 +27,6 @@ class ChatActivity : AppCompatActivity() {
     private var chatList = mutableListOf<Contact>()
     private lateinit var adapter: ChatListAdapter
 
-    // 🔹 Launcher pentru alegerea contactului din agendă
     private val pickContactLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -63,7 +62,10 @@ class ChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
 
-        // ✅ Inițializează helperul AICI, după ce există un context valid
+        // 🔄 Verifică actualizări la pornire
+        val updateChecker = UpdateChecker(this)
+        updateChecker.checkForUpdates()
+
         contactsHelper = ContactsHelper(this)
 
         recyclerChats = findViewById(R.id.recyclerChats)
@@ -72,10 +74,8 @@ class ChatActivity : AppCompatActivity() {
         fabAddChat = findViewById(R.id.fabAddChat)
         btnSettings = findViewById(R.id.btnSettings)
 
-        // Setup Toolbar Menu using ToolbarMenuHandler
         ToolbarMenuHandler.setupToolbar(this, null, btnSettings)
 
-        // 🔹 Încarcă lista de contacte salvate în aplicație
         chatList = contactsHelper.getContacts().toMutableList()
         adapter = ChatListAdapter(chatList)
         recyclerChats.layoutManager = LinearLayoutManager(this)
@@ -83,7 +83,6 @@ class ChatActivity : AppCompatActivity() {
 
         updateEmptyState()
 
-        // 🔍 Căutare conversații
         searchBar.addTextChangedListener { editable ->
             val query = editable?.toString()?.trim() ?: ""
             val filtered = chatList.filter {
@@ -97,7 +96,6 @@ class ChatActivity : AppCompatActivity() {
             txtEmpty.visibility = if (filtered.isEmpty()) TextView.VISIBLE else TextView.GONE
         }
 
-        // ➕ Deschide agenda telefonului pentru conversație nouă
         fabAddChat.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
             pickContactLauncher.launch(intent)

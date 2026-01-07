@@ -32,9 +32,6 @@ class ScanQRActivity : ComponentActivity() {
     private val executor = Executors.newSingleThreadExecutor()
     private val client = OkHttpClient()
 
-    // 🔴 URL-ul Backend-ului de pe Render
-    private val BACKEND_URL = "https://textonly-backend-web.onrender.com"
-
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) startCamera()
@@ -112,7 +109,6 @@ class ScanQRActivity : ComponentActivity() {
     }
 
     private fun sendTokenToBackend(token: String) {
-        // Obținem numărul de telefon salvat (sau folosim unul default pentru testare)
         val prefs: SharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val phoneNumber = prefs.getString("phoneNumber", "0712345678") ?: "0712345678"
 
@@ -120,18 +116,20 @@ class ScanQRActivity : ComponentActivity() {
         json.put("token", token)
         json.put("phoneNumber", phoneNumber)
 
-        Log.d("QR_LOGIN", "Sending: $json to $BACKEND_URL/api/auth/qr/validate")
+        // Folosim URL-ul actualizat din Config (fără /api)
+        val validateUrl = Config.QR_VALIDATE_URL
+        Log.d("QR_LOGIN", "Sending: $json to $validateUrl")
 
         val requestBody = json.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
         val request = Request.Builder()
-            .url("$BACKEND_URL/api/auth/qr/validate")
+            .url(validateUrl)
             .post(requestBody)
             .build()
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    Toast.makeText(this@ScanQRActivity, "Eroare conexiune: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ScanQRActivity, "Eroare rețea: ${e.message}", Toast.LENGTH_LONG).show()
                     isProcessing = false
                 }
             }
@@ -139,10 +137,11 @@ class ScanQRActivity : ComponentActivity() {
             override fun onResponse(call: Call, response: Response) {
                 runOnUiThread {
                     if (response.isSuccessful) {
-                        Toast.makeText(this@ScanQRActivity, "Conectare Desktop Reușită! ✅", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@ScanQRActivity, "Login Reușit! ✅", Toast.LENGTH_LONG).show()
                         finish()
                     } else {
-                        Toast.makeText(this@ScanQRActivity, "Eroare server: ${response.code}", Toast.LENGTH_SHORT).show()
+                        // Afișăm codul de eroare și URL-ul pentru a depana mai ușor
+                        Toast.makeText(this@ScanQRActivity, "Err ${response.code} la $validateUrl", Toast.LENGTH_LONG).show()
                         isProcessing = false
                     }
                 }

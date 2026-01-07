@@ -11,6 +11,26 @@ import java.util.UUID;
 
 @Service
 public class QrService {
+                // Returnează sesiunea QR după token
+                public QrSession getSessionByToken(String token) {
+                    return qrSessionRepository.findById(token).orElse(null);
+                }
+            // Invalidează ultima sesiune QR validată (mock/demo)
+            public void logoutLastValidatedSession() {
+                QrSession session = getLastValidatedSession();
+                if (session != null) {
+                    session.setValidated(false);
+                    qrSessionRepository.save(session);
+                }
+            }
+        // Returnează ultima sesiune QR validată (mock/demo)
+        public QrSession getLastValidatedSession() {
+            return qrSessionRepository.findAll().stream()
+                .filter(QrSession::isValidated)
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .findFirst()
+                .orElse(null);
+        }
     @Autowired
     private QrSessionRepository qrSessionRepository;
 
