@@ -12,8 +12,8 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/**").permitAll()
-                .anyRequest().permitAll()
+                .requestMatchers("/login", "/login.html", "/api/auth/qr", "/api/auth/qr/status/**", "/static/**", "/css/**", "/js/**").permitAll()
+                .anyRequest().authenticated()
             )
             .formLogin(form -> form.disable()); // Dezactivează login-ul clasic cu form
         return http.build();
