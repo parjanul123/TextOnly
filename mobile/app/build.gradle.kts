@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.textonly"
+    namespace = "text.only.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.textonly"
+        applicationId = "text.only.app"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
