@@ -60,6 +60,7 @@ dependencies {
     // ✅ RxJava și RxAndroid pentru STOMP
     implementation("io.reactivex.rxjava2:rxjava:2.2.21")
     implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
+    implementation("com.android.billingclient:billing-ktx:7.0.0")
 
     // ✅ Networking (OkHttp)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")

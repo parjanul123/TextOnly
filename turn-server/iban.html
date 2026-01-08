@@ -20,8 +20,6 @@
     <div class="container">
         <h2>Tranzacție către IBAN</h2>
         <form id="ibanForm">
-            <label for="contBancar">Cont bancar sursă</label>
-            <input type="text" id="contBancar" name="contBancar" required>
             <label for="ibanDest">IBAN destinație</label>
             <input type="text" id="ibanDest" name="ibanDest" required>
             <button type="submit">Vinde OnlyCoins</button>
@@ -34,13 +32,14 @@
         }
         document.getElementById('ibanForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            // contul bancar sursă este gestionat de aplicație, nu de utilizator
             if (isMobile()) {
                 document.getElementById('deviceInfo').textContent = 'Dispozitiv mobil detectat. Se vor solicita date biometrice.';
                 // Simulare: aici se poate integra autentificarea biometrică
             } else {
                 document.getElementById('deviceInfo').textContent = 'Acces de pe PC. Tranzacția poate continua.';
             }
-            // Simulare trimitere date către server
+            // Simulare trimitere date către server, contul sursă este preluat automat
         });
     </script>
 </body>
