@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Portofel OnlyCoins</title>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 400px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 24px; }
+        input, button { width: 100%; margin-bottom: 16px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
+        .balance { font-size: 2em; color: #1976d2; margin-bottom: 24px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Portofel OnlyCoins</h2>
+    <div class="balance" id="walletBalance">0 OnlyCoins</div>
+    <input id="amount" type="number" placeholder="Sumă" min="1">
+    <button onclick="addToWallet()">Adaugă OnlyCoins</button>
+    <button onclick="consumeFromWallet()">Vinde OnlyCoins</button>
+</div>
+<script>
+const userId = '1'; // Setează corect pentru utilizatorul curent
+const apiUrl = '/api/users/' + userId + '/wallet';
+const stompClient = new StompJs.Client({
+  brokerURL: 'ws://localhost:8080/ws', // Schimbă cu URL-ul tău
+  reconnectDelay: 5000,
+});
+
+function fetchWalletBalance() {
+  fetch(apiUrl)
+    .then(res => res.json())
+    .then(balance => {
+      document.getElementById('walletBalance').innerText = balance + ' OnlyCoins';
+    });
+}
+
+function addToWallet() {
+  const amount = parseFloat(document.getElementById('amount').value);
+  if (!amount || amount <= 0) return;
+  fetch(apiUrl + '/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount })
+  }).then(fetchWalletBalance);
+}
+
+function consumeFromWallet() {
+  const amount = parseFloat(document.getElementById('amount').value);
+  if (!amount || amount <= 0) return;
+  fetch(apiUrl + '/consume', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount })
+  }).then(fetchWalletBalance);
+}
+
+stompClient.onConnect = () => {
+  stompClient.subscribe('/topic/wallet', (message) => {
+    const user = JSON.parse(message.body);
+    if (user.id == userId) {
+      document.getElementById('walletBalance').innerText = user.walletBalance + ' OnlyCoins';
+    }
+  });
+};
+
+stompClient.activate();
+fetchWalletBalance();
+</script>
+</body>
+</html>

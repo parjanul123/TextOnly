@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Cumpără OnlyCoins</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: #fff; }
+        .container { max-width: 400px; margin: 40px auto; background: #222; border-radius: 8px; box-shadow: 0 2px 8px #0008; padding: 24px; }
+        input, select, button { width: 100%; margin-bottom: 16px; padding: 8px; border-radius: 6px; border: 1px solid #444; background: #181818; color: #fff; }
+        .preview { color: #00E676; font-size: 1.1em; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>CUMPĂRĂ ONLYCOINS</h2>
+    <label>Valută:</label>
+    <select id="currency">
+        <option value="RON">RON</option>
+        <option value="EUR">EUR</option>
+        <option value="USD">USD</option>
+    </select>
+    <label>Suma:</label>
+    <input id="amount" type="number" min="1" placeholder="Introdu suma">
+    <div class="preview" id="coinsPreview">Vei primi: 0 OnlyCoins</div>
+    <button onclick="choosePayment()">Alege metoda de plată</button>
+</div>
+<script>
+const rate = { RON: 1, EUR: 5, USD: 4.5 }; // Exemplu rate
+const coinsPerUnit = 10;
+
+function updatePreview() {
+  const currency = document.getElementById('currency').value;
+  const amount = parseFloat(document.getElementById('amount').value) || 0;
+  const coins = Math.floor(amount * coinsPerUnit * rate[currency]);
+  document.getElementById('coinsPreview').innerText = `Vei primi: ${coins} OnlyCoins`;
+}
+
+document.getElementById('currency').onchange = updatePreview;
+document.getElementById('amount').oninput = updatePreview;
+
+function choosePayment() {
+  alert('Alege metoda de plată (demo)');
+  // Aici poți integra dialog/modal pentru metode de plată
+}
+</script>
+</body>
+</html>

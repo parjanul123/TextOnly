@@ -19,6 +19,13 @@ public class User {
     private String email;
     private String password;
 
+    // Profil
+    private String displayName;
+    private String profileImageUri;
+
+    // Portofel virtual
+    private Double walletBalance = 0.0;
+
     // 🔧 Constructor personalizat fără ID (pentru înregistrare)
     public User(String username, String email, String password) {
         this.username = username;

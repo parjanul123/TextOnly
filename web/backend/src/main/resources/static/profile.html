@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Profil utilizator</title>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 400px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 24px; }
+        input, button { width: 100%; margin-bottom: 16px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
+        img { max-width: 100px; border-radius: 50%; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Profil utilizator</h2>
+    <img id="profileImagePreview" src="" alt="Imagine profil" style="display:none;">
+    <input id="displayName" placeholder="Nume afișat">
+    <input id="profileImageUri" placeholder="Link imagine profil">
+    <button onclick="sendProfileUpdate()">Salvează profil</button>
+</div>
+<script>
+const phoneNumber = '123456'; // Setează corect pentru utilizatorul curent
+const stompClient = new StompJs.Client({
+  brokerURL: 'ws://localhost:8080/ws', // Schimbă cu URL-ul tău
+  reconnectDelay: 5000,
+});
+
+stompClient.onConnect = () => {
+  stompClient.subscribe('/topic/profile', (message) => {
+    const user = JSON.parse(message.body);
+    document.getElementById('displayName').value = user.displayName || '';
+    document.getElementById('profileImageUri').value = user.profileImageUri || '';
+    if (user.profileImageUri) {
+      document.getElementById('profileImagePreview').src = user.profileImageUri;
+      document.getElementById('profileImagePreview').style.display = 'block';
+    } else {
+      document.getElementById('profileImagePreview').style.display = 'none';
+    }
+  });
+};
+
+function sendProfileUpdate() {
+  const user = {
+    phoneNumber: phoneNumber,
+    displayName: document.getElementById('displayName').value,
+    profileImageUri: document.getElementById('profileImageUri').value
+  };
+  stompClient.publish({
+    destination: '/app/profile/update',
+    body: JSON.stringify(user)
+  });
+}
+
+stompClient.activate();
+</script>
+</body>
+</html>

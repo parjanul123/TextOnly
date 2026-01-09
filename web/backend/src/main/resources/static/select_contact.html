@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Selectează Contact</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 400px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 24px; }
+        input { width: 100%; margin-bottom: 16px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
+        .contact { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .contact:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Selectează Contact</h2>
+    <input id="searchContacts" placeholder="Caută contacte...">
+    <div id="contacts"></div>
+</div>
+<script>
+function loadContacts(query = "") {
+  const url = query ? `/api/contacts/search?query=${encodeURIComponent(query)}` : '/api/contacts';
+  fetch(url)
+    .then(res => res.json())
+    .then(list => {
+      const div = document.getElementById('contacts');
+      div.innerHTML = '';
+      list.forEach(c => {
+        const el = document.createElement('div');
+        el.className = 'contact';
+        el.innerHTML = `<b>${c.name}</b><br><small>${c.phone}</small>`;
+        el.onclick = () => alert(`Deschide chat cu ${c.name}`); // Poți integra deschiderea chatului
+        div.appendChild(el);
+      });
+    });
+}
+document.getElementById('searchContacts').oninput = e => loadContacts(e.target.value);
+loadContacts();
+</script>
+</body>
+</html>

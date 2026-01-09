@@ -1,6 +1,8 @@
 com\textonly\backend\model\User.class
+com\textonly\backend\controller\ContactController.class
 com\messenger\controller\MessageController.class
 com\messenger\repository\QrSessionRepository.class
+com\textonly\backend\controller\RootRedirectController.class
 com\messenger\service\MessageService.class
 com\textonly\backend\controller\UserController.class
 com\textonly\backend\config\SecurityConfig.class
@@ -14,10 +16,14 @@ com\textonly\backend\repository\MessageRepository.class
 com\textonly\backend\controller\ChatController.class
 com\messenger\model\User.class
 com\messenger\model\QrSession.class
+com\textonly\backend\model\Contact.class
 com\messenger\model\Message.class
 com\messenger\service\QrService.class
 com\messenger\repository\UserRepository.class
+com\textonly\backend\controller\WalletController.class
 com\messenger\config\WebSocketConfig.class
+com\textonly\backend\controller\WalletWebSocketController.class
+com\messenger\controller\ProfileWebSocketController.class
 com\textonly\backend\service\ChatService.class
 com\textonly\backend\controller\AuthController.class
 com\messenger\controller\AuthController.class

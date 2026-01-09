@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Fereastră Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: #fff; }
+        .header { background: #1E1E1E; padding: 12px; display: flex; align-items: center; }
+        .header .name { flex: 1; font-weight: bold; font-size: 18px; }
+        .header button { background: none; border: none; color: #fff; font-size: 1.2em; margin-left: 8px; }
+        .messages { height: 300px; overflow-y: auto; background: #222; padding: 8px; margin-bottom: 12px; border-radius: 8px; }
+        .input-bar { display: flex; }
+        .input-bar input { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #444; background: #181818; color: #fff; }
+        .input-bar button { margin-left: 8px; padding: 10px 20px; border-radius: 6px; border: none; background: #1976d2; color: #fff; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <span class="name" id="contactName">Nume Contact</span>
+    <button title="Apel" onclick="window.location='call.html'">📞</button>
+    <button title="Video" onclick="alert('Apel video (demo)')">🎥</button>
+    <button title="Detalii" onclick="alert('Detalii contact (demo)')">ℹ️</button>
+</div>
+<div class="messages" id="messages">
+    <div>📡 În așteptarea conexiunii...</div>
+</div>
+<div class="input-bar">
+    <input id="inputMessage" placeholder="Scrie mesaj...">
+    <button onclick="sendMessage()">Trimite</button>
+</div>
+<script>
+function sendMessage() {
+  const msg = document.getElementById('inputMessage').value;
+  if (!msg) return;
+  const messages = document.getElementById('messages');
+  messages.innerHTML += `<div style='margin:4px 0;'>${msg}</div>`;
+  document.getElementById('inputMessage').value = '';
+  // Aici poți integra trimitere WebSocket/REST
+}
+</script>
+</body>
+</html>

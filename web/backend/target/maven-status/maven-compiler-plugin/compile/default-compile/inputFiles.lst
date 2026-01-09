@@ -1,3 +1,4 @@
+D:\TextOnly\web\backend\src\main\java\com\textonly\backend\controller\WalletWebSocketController.java
 D:\TextOnly\web\backend\src\main\java\com\textonly\backend\controller\AuthController.java
 D:\TextOnly\web\backend\src\main\java\com\textonly\backend\TextOnlyBackendApplication.java
 D:\TextOnly\web\backend\src\main\java\com\textonly\backend\config\SecurityConfig.java
@@ -6,6 +7,8 @@ D:\TextOnly\web\backend\src\main\java\com\messenger\model\User.java
 D:\TextOnly\web\backend\src\main\java\com\messenger\controller\AuthController.java
 D:\TextOnly\web\backend\src\main\java\com\messenger\controller\MessageController.java
 D:\TextOnly\web\backend\src\main\java\com\textonly\backend\controller\UserController.java
+D:\TextOnly\web\backend\src\main\java\com\textonly\backend\model\Contact.java
+D:\TextOnly\web\backend\src\main\java\com\textonly\backend\controller\ContactController.java
 D:\TextOnly\web\backend\src\main\java\com\messenger\config\WebSocketConfig.java
 D:\TextOnly\web\backend\src\main\java\com\messenger\repository\UserRepository.java
 D:\TextOnly\web\backend\src\main\java\com\messenger\repository\QrSessionRepository.java
@@ -15,11 +18,14 @@ D:\TextOnly\web\backend\src\main\java\com\messenger\model\Message.java
 D:\TextOnly\web\backend\src\main\java\com\textonly\backend\model\Message.java
 D:\TextOnly\web\backend\src\main\java\com\messenger\service\MessageService.java
 D:\TextOnly\web\backend\src\main\java\com\textonly\backend\controller\IceServerController.java
+D:\TextOnly\web\backend\src\main\java\com\textonly\backend\controller\WalletController.java
 D:\TextOnly\web\backend\src\main\java\com\messenger\service\AuthService.java
 D:\TextOnly\web\backend\src\main\java\com\messenger\model\QrSession.java
 D:\TextOnly\web\backend\src\main\java\com\messenger\service\QrService.java
 D:\TextOnly\web\backend\src\main\java\com\messenger\controller\WebSocketMessageController.java
 D:\TextOnly\web\backend\src\main\java\com\textonly\backend\repository\MessageRepository.java
 D:\TextOnly\web\backend\src\main\java\com\textonly\backend\service\AuthService.java
+D:\TextOnly\web\backend\src\main\java\com\messenger\controller\ProfileWebSocketController.java
 D:\TextOnly\web\backend\src\main\java\com\messenger\repository\MessageRepository.java
+D:\TextOnly\web\backend\src\main\java\com\textonly\backend\controller\RootRedirectController.java
 D:\TextOnly\web\backend\src\main\java\com\textonly\backend\controller\ChatController.java

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Vinde OnlyCoins</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: #fff; }
+        .container { max-width: 400px; margin: 40px auto; background: #222; border-radius: 8px; box-shadow: 0 2px 8px #0008; padding: 24px; }
+        input, select, button { width: 100%; margin-bottom: 16px; padding: 8px; border-radius: 6px; border: 1px solid #444; background: #181818; color: #fff; }
+        .preview { color: #00E676; font-size: 1.1em; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>VINDE ONLYCOINS</h2>
+    <label>Valută de primire:</label>
+    <select id="currency">
+        <option value="RON">RON</option>
+        <option value="EUR">EUR</option>
+        <option value="USD">USD</option>
+    </select>
+    <label>Suma de retras (OnlyCoins):</label>
+    <input id="sellAmount" type="number" min="1" placeholder="Introdu suma de monede">
+    <div class="preview" id="sellPreview">Vei primi: 0</div>
+    <button onclick="confirmSell()">Extrage</button>
+</div>
+<script>
+const rate = { RON: 1, EUR: 0.2, USD: 0.22 }; // Exemplu rate
+
+function updateSellPreview() {
+  const currency = document.getElementById('currency').value;
+  const amount = parseFloat(document.getElementById('sellAmount').value) || 0;
+  const value = (amount * rate[currency]).toFixed(2);
+  document.getElementById('sellPreview').innerText = `Vei primi: ${value} ${currency}`;
+}
+
+document.getElementById('currency').onchange = updateSellPreview;
+document.getElementById('sellAmount').oninput = updateSellPreview;
+
+function confirmSell() {
+  alert('Tranzacție efectuată (demo)');
+  // Aici poți integra logica de vânzare și update portofel
+}
+</script>
+</body>
+</html>

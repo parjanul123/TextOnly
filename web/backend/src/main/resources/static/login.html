@@ -16,7 +16,7 @@
         <h2>Scanează acest cod QR cu aplicația de pe telefon pentru login</h2>
         <div id="qrcode"></div>
         <button id="downloadQR" style="display:none;margin-bottom:20px;">Descarcă QR</button>
-        <div id="status"></div>
+        <div id="status" style="color:red;"></div>
     </div>
     <script>
     // Funcție care detectează dacă QR-ul a fost scanat și login-ul a reușit
@@ -29,15 +29,22 @@
                         clearInterval(poll);
                         if (typeof onSuccess === 'function') onSuccess();
                     }
+                })
+                .catch(() => {
+                    document.getElementById('status').innerText = 'Eroare la verificarea statusului QR!';
                 });
         }, 2000);
     }
 
     // Generează token QR de la backend
     fetch('/api/auth/qr', {method: 'POST'})
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Backend indisponibil');
+        return res.json();
+      })
       .then(data => {
-        const token = data.token;
+        const token = data.token || data.qrToken || data.id || data.sessionId;
+        if (!token) throw new Error('Token QR lipsă din răspuns!');
         sessionStorage.setItem('qrToken', token);
         console.log('TOKEN QR:', token);
         // Pentru deep link corect:
@@ -54,6 +61,8 @@
               link.href = canvas.toDataURL();
               link.click();
             };
+          } else {
+            document.getElementById('status').innerText = 'Eroare la generarea codului QR!';
           }
         });
         // Folosește funcția pentru polling și redirect
@@ -62,6 +71,17 @@
             setTimeout(() => {
                 window.location.href = 'chat.html';
             }, 1000);
+        });
+      })
+      .catch(err => {
+        document.getElementById('status').innerText = 'Eroare: ' + err.message;
+        // fallback QR static demo
+        const fallback = 'https://textonly.ro/login';
+        const canvas = document.createElement('canvas');
+        QRCode.toCanvas(canvas, fallback, function (error) {
+          if (!error) {
+            document.getElementById('qrcode').appendChild(canvas);
+          }
         });
       });
     </script>

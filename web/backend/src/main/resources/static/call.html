@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Apel TextOnly</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: #fff; }
+        .container { max-width: 400px; margin: 40px auto; background: #222; border-radius: 8px; box-shadow: 0 2px 8px #0008; padding: 24px; text-align: center; }
+        .status { font-size: 1.3em; margin: 40px 0 32px 0; }
+        .controls button { margin: 0 10px; padding: 12px 18px; border-radius: 50%; border: none; background: #333; color: #fff; font-size: 1.2em; }
+        .controls { margin-top: 60px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="status" id="callStatus">Apel în curs...</div>
+    <div class="controls">
+        <button title="Difuzor">🔊</button>
+        <button title="Microfon">🎤</button>
+        <button title="Camera">📷</button>
+        <button title="Trimite gift">🎁</button>
+        <button title="Închide apel" onclick="endCall()">❌</button>
+    </div>
+</div>
+<script>
+function endCall() {
+  document.getElementById('callStatus').innerText = 'Apel încheiat';
+  // Aici poți integra logica de închidere apel
+}
+</script>
+</body>
+</html>
