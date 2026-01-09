@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: textonly-backend
+    env: docker
+    plan: free
+    dockerfilePath: web/backend/Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080

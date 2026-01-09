@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: turn-server
+    env: docker
+    plan: free
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 3478
+  - type: web
+    name: textonly-backend
+    env: docker
+    plan: free
+    dockerfilePath: ../web/backend/Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080
