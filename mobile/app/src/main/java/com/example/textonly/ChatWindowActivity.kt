@@ -1,119 +1,120 @@
 package text.only.app
 
-
+import android.database.Cursor
+import android.net.Uri
 import android.os.Bundle
-import android.widget.*
+import android.provider.OpenableColumns
+import android.text.InputType
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
-// import ua.naiksoftware.stomp.Stomp
-// import ua.naiksoftware.stomp.StompClient
 
 class ChatWindowActivity : AppCompatActivity() {
 
-    private lateinit var txtContactName: TextView
+    private lateinit var btnAttach: ImageButton
     private lateinit var recyclerMessages: RecyclerView
-    private lateinit var inputMessage: EditText
-    private lateinit var btnSend: Button
-    private lateinit var btnCall: ImageButton
-    private lateinit var btnVideoCall: ImageButton
-    private lateinit var btnDetails: ImageButton
+    private lateinit var txtContactName: TextView
+    private lateinit var messageAdapter: MessageAdapter
+    private val chatMessages = mutableListOf<ChatMessage>()
 
-    private val messages = mutableListOf<String>()
-    private lateinit var adapter: MessageAdapter
-    private val firestore = FirebaseFirestore.getInstance()
-    private var chatListener: ListenerRegistration? = null
-
-    private lateinit var contactName: String
-    private lateinit var contactPhone: String
-
-    // ⚠️ Schimbă cu numărul tău real (telefonul 1)
-    private val currentUserPhone = "0741111111"
+    private val filePickerLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let { showSetPriceDialog(it) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat_window)
-
-        txtContactName = findViewById(R.id.txtContactName)
+        
+        // Inițializarea view-urilor
+        btnAttach = findViewById(R.id.btnAttach)
         recyclerMessages = findViewById(R.id.recyclerMessages)
-        inputMessage = findViewById(R.id.inputMessage)
-        btnSend = findViewById(R.id.btnSend)
-        btnCall = findViewById(R.id.btnCall)
-        btnVideoCall = findViewById(R.id.btnVideoCall)
-        btnDetails = findViewById(R.id.btnDetails)
+        txtContactName = findViewById(R.id.txtContactName)
+        
+        // Preluarea numelui contactului din Intent și afișarea lui
+        val contactName = intent.getStringExtra("contact_name")
+        txtContactName.text = contactName ?: "Contact" // Folosim "Contact" ca text implicit
 
-        contactName = intent.getStringExtra("contact_name") ?: "Necunoscut"
-        contactPhone = intent.getStringExtra("contact_phone") ?: ""
-        txtContactName.text = contactName
+        setupRecyclerView()
 
-        adapter = MessageAdapter(messages)
+        btnAttach.setOnClickListener {
+            filePickerLauncher.launch("*/*")
+        }
+        
+        // TODO: Adaugă logica pentru trimiterea mesajelor text
+    }
+    
+    private fun setupRecyclerView() {
+        messageAdapter = MessageAdapter(chatMessages)
         recyclerMessages.layoutManager = LinearLayoutManager(this)
-        recyclerMessages.adapter = adapter
+        recyclerMessages.adapter = messageAdapter
+    }
 
-        listenForMessages()
+    private fun showSetPriceDialog(fileUri: Uri) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Setează Prețul (OnlyCoins)")
 
-        btnSend.setOnClickListener {
-            val text = inputMessage.text.toString().trim()
-            if (text.isNotEmpty()) {
-                sendMessage(text)
-                inputMessage.text.clear()
+        val input = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER
+            hint = "0 (gratuit)"
+        }
+        builder.setView(input)
+
+        builder.setPositiveButton("Trimite") { dialog, _ ->
+            val price = input.text.toString().toIntOrNull() ?: 0
+            sendFile(fileUri, price)
+            dialog.dismiss()
+        }
+        
+        builder.setNegativeButton("Anulează") { dialog, _ -> dialog.cancel() }
+        builder.show()
+    }
+    
+    private fun getFileName(uri: Uri): String {
+        var result: String? = null
+        if (uri.scheme == "content") {
+            val cursor: Cursor? = contentResolver.query(uri, null, null, null, null)
+            cursor.use {
+                if (it != null && it.moveToFirst()) {
+                    result = it.getString(it.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+                }
             }
         }
-    }
-
-    private fun listenForMessages() {
-        val chatId = getChatId(currentUserPhone, contactPhone)
-        chatListener = firestore.collection("chats")
-            .document(chatId)
-            .collection("messages")
-            .orderBy("timestamp")
-            .addSnapshotListener { snapshots, e ->
-                if (e != null) {
-                    Toast.makeText(this, "Eroare Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
-                    return@addSnapshotListener
-                }
-
-                if (snapshots != null) {
-                    messages.clear()
-                    for (doc in snapshots.documents) {
-                        val sender = doc.getString("sender")
-                        val text = doc.getString("text")
-                        if (sender != null && text != null) {
-                            val prefix = if (sender == currentUserPhone) "Tu: " else "${contactName}: "
-                            messages.add(prefix + text)
-                        }
-                    }
-                    adapter.notifyDataSetChanged()
-                    recyclerMessages.scrollToPosition(messages.size - 1)
+        if (result == null) {
+            result = uri.path
+            val cut = result?.lastIndexOf('/')
+            if (cut != -1) {
+                if (cut != null) {
+                    result = result?.substring(cut + 1)
                 }
             }
+        }
+        return result ?: "fișier_necunoscut"
     }
 
-    private fun sendMessage(text: String) {
-        val chatId = getChatId(currentUserPhone, contactPhone)
-        val message = hashMapOf(
-            "sender" to currentUserPhone,
-            "text" to text,
-            "timestamp" to System.currentTimeMillis()
+    private fun sendFile(fileUri: Uri, price: Int) {
+        val fileName = getFileName(fileUri)
+        val fileType = contentResolver.getType(fileUri)
+
+        val fileMessage = FileMessage(
+            fileName = fileName,
+            fileType = fileType,
+            price = price,
+            isSent = true,
+            isUnlocked = true,
+            localUri = fileUri
         )
+        
+        chatMessages.add(fileMessage)
+        messageAdapter.notifyItemInserted(chatMessages.size - 1)
+        recyclerMessages.scrollToPosition(chatMessages.size - 1)
 
-        firestore.collection("chats")
-            .document(chatId)
-            .collection("messages")
-            .add(message)
-            .addOnFailureListener {
-                Toast.makeText(this, "Eroare la trimitere: ${it.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun getChatId(phone1: String, phone2: String): String {
-        return if (phone1 < phone2) "${phone1}_$phone2" else "${phone2}_$phone1"
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        chatListener?.remove()
+        Toast.makeText(this, "Se încarcă fișierul...", Toast.LENGTH_SHORT).show()
+        // TODO: Aici adaugi logica de upload pe server și trimitere prin WebSocket
     }
 }
