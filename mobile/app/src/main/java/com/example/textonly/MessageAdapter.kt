@@ -5,46 +5,55 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
-class MessageAdapter(private val messages: MutableList<ChatMessage>) :
-    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+interface MessageInteractionListener {
+    fun onUnlockFileRequested(message: FileMessage, position: Int)
+    fun onInviteAction(inviteCode: String, accepted: Boolean, position: Int)
+}
 
-    // Constante pentru tipurile de view-uri
+class MessageAdapter(
+    private val messages: MutableList<ChatMessage>,
+    private val listener: MessageInteractionListener
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
     companion object {
         private const val TYPE_TEXT_SENT = 0
         private const val TYPE_TEXT_RECEIVED = 1
         private const val TYPE_FILE_SENT = 2
         private const val TYPE_FILE_RECEIVED = 3
+        private const val TYPE_INVITE_RECEIVED = 4
     }
 
-    // View Holder pentru mesaje text (simplificat)
-    class TextViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val textMessage: TextView = view.findViewById(R.id.textMessage)
+    class TextViewHolder(v: View) : RecyclerView.ViewHolder(v) { val txt: TextView = v.findViewById(R.id.textMessage) }
+    class FileViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+        val fileName: TextView = v.findViewById(R.id.txtFileName)
+        val price: TextView? = v.findViewById(R.id.txtPrice)
+        val unlock: Button? = v.findViewById(R.id.btnUnlock)
     }
-
-    // View Holder pentru fișiere
-    class FileViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val txtFileName: TextView = view.findViewById(R.id.txtFileName)
-        val txtPrice: TextView? = view.findViewById(R.id.txtPrice) // Poate fi null la received
-        val btnUnlock: Button? = view.findViewById(R.id.btnUnlock) // Poate fi null la sent
+    class InviteViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+        val serverName: TextView = v.findViewById(R.id.txtServerName)
+        val inviterName: TextView = v.findViewById(R.id.txtInviterName)
+        val btnAccept: Button = v.findViewById(R.id.btnAccept)
+        val btnRefuse: Button = v.findViewById(R.id.btnRefuse)
     }
 
     override fun getItemViewType(position: Int): Int {
-        return when (val message = messages[position]) {
-            is TextMessage -> if (message.isSent) TYPE_TEXT_SENT else TYPE_TEXT_RECEIVED
-            is FileMessage -> if (message.isSent) TYPE_FILE_SENT else TYPE_FILE_RECEIVED
+        return when (val msg = messages[position]) {
+            is TextMessage -> if (msg.isSent) TYPE_TEXT_SENT else TYPE_TEXT_RECEIVED
+            is FileMessage -> if (msg.isSent) TYPE_FILE_SENT else TYPE_FILE_RECEIVED
+            is InviteMessage -> TYPE_INVITE_RECEIVED
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            TYPE_TEXT_SENT -> TextViewHolder(inflater.inflate(R.layout.item_message, parent, false)) // TODO: Creează item_message_sent
-            TYPE_TEXT_RECEIVED -> TextViewHolder(inflater.inflate(R.layout.item_message, parent, false)) // TODO: Creează item_message_received
+            TYPE_TEXT_SENT -> TextViewHolder(inflater.inflate(R.layout.item_message, parent, false))
+            TYPE_TEXT_RECEIVED -> TextViewHolder(inflater.inflate(R.layout.item_message, parent, false))
             TYPE_FILE_SENT -> FileViewHolder(inflater.inflate(R.layout.item_message_file_sent, parent, false))
             TYPE_FILE_RECEIVED -> FileViewHolder(inflater.inflate(R.layout.item_message_file_received, parent, false))
+            TYPE_INVITE_RECEIVED -> InviteViewHolder(inflater.inflate(R.layout.item_message_invite_received, parent, false))
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -52,37 +61,45 @@ class MessageAdapter(private val messages: MutableList<ChatMessage>) :
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val message = messages[position]) {
             is TextMessage -> {
-                (holder as TextViewHolder).textMessage.text = message.content
+                val textHolder = holder as TextViewHolder
+                textHolder.txt.text = message.content
             }
             is FileMessage -> {
                 val fileHolder = holder as FileViewHolder
-                fileHolder.txtFileName.text = message.fileName
-                
+                fileHolder.fileName.text = message.fileName
                 if (message.isSent) {
-                    fileHolder.txtPrice?.text = "Preț: ${message.price} OnlyCoins"
+                    fileHolder.price?.text = "Preț: ${message.price} OnlyCoins"
                 } else {
-                    if (message.isUnlocked) {
-                        fileHolder.btnUnlock?.text = "Descarcă"
-                    } else {
-                        fileHolder.btnUnlock?.text = "Deblochează (${message.price} OnlyCoins)"
+                    fileHolder.unlock?.setOnClickListener { listener.onUnlockFileRequested(message, position) }
+                }
+            }
+            is InviteMessage -> {
+                val inviteHolder = holder as InviteViewHolder
+                inviteHolder.serverName.text = message.serverName
+                inviteHolder.inviterName.text = "Invitat de: ${message.inviterName}"
+
+                when (message.state) {
+                    InviteState.PENDING -> {
+                        inviteHolder.btnAccept.visibility = View.VISIBLE
+                        inviteHolder.btnRefuse.text = "Refuză"
+                        inviteHolder.btnRefuse.isEnabled = true
+                        inviteHolder.btnAccept.setOnClickListener { listener.onInviteAction(message.inviteCode, true, position) }
+                        inviteHolder.btnRefuse.setOnClickListener { listener.onInviteAction(message.inviteCode, false, position) }
                     }
-                    
-                    fileHolder.btnUnlock?.setOnClickListener {
-                        if (message.isUnlocked) {
-                            // TODO: Logica de descărcare a fișierului de la message.remoteUrl
-                            Toast.makeText(it.context, "Se descarcă...", Toast.LENGTH_SHORT).show()
-                        } else {
-                            // TODO: Logica de plată cu OnlyCoins
-                            // Dacă plata are succes:
-                            message.isUnlocked = true
-                            notifyItemChanged(position) // Re-desenează acest item ca "deblocat"
-                            Toast.makeText(it.context, "Deblocat!", Toast.LENGTH_SHORT).show()
-                        }
+                    InviteState.ACCEPTED -> {
+                        inviteHolder.btnAccept.visibility = View.GONE
+                        inviteHolder.btnRefuse.text = "Acceptat"
+                        inviteHolder.btnRefuse.isEnabled = false
+                    }
+                    InviteState.REFUSED -> {
+                        inviteHolder.btnAccept.visibility = View.GONE
+                        inviteHolder.btnRefuse.text = "Refuzat"
+                        inviteHolder.btnRefuse.isEnabled = false
                     }
                 }
             }
         }
     }
 
-    override fun getItemCount(): Int = messages.size
+    override fun getItemCount() = messages.size
 }

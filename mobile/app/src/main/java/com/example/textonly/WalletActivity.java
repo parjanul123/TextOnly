@@ -45,6 +45,7 @@ public class WalletActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         // temporar sau backend
-        txtCoinBalance.setText("0 OnlyCoins");
+        // Textul conține doar numărul, iconița este setată ca drawableEnd
+        txtCoinBalance.setText("0");
     }
 }

@@ -13,7 +13,7 @@ class ChatListAdapter(
 
     class VH(v: View) : RecyclerView.ViewHolder(v) {
         val name: TextView = v.findViewById(R.id.chatTitle)
-        val phone: TextView = v.findViewById(R.id.chatPhone)
+        // val phone: TextView = v.findViewById(R.id.chatPhone) // Comentat deoarece nu mai există în layout
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -25,7 +25,7 @@ class ChatListAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val c = list[position]
         holder.name.text = c.name
-        holder.phone.text = c.phone
+        // holder.phone.text = c.phone // Comentat deoarece nu mai există
 
         holder.itemView.setOnClickListener {
             val ctx = holder.itemView.context
