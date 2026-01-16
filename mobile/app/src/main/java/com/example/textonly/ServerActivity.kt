@@ -1,6 +1,7 @@
 package text.only.app
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
@@ -13,6 +14,7 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -48,6 +50,19 @@ class ServerActivity : AppCompatActivity(), MessageInteractionListener {
     private lateinit var containerVoiceInfo: LinearLayout
     
     private var currentVoiceChannelName: String? = null
+
+    private val inviteLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val data = result.data
+            val contactName = data?.getStringExtra("CONTACT_NAME")
+            if (contactName != null) {
+                val newMember = Member(contactName, listOf("Member"))
+                members.add(newMember)
+                memberAdapter.notifyItemInserted(members.size - 1)
+                Toast.makeText(this, "$contactName a fost invitat!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -308,7 +323,12 @@ class ServerActivity : AppCompatActivity(), MessageInteractionListener {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (toggle.onOptionsItemSelected(item)) { return true }
         when (item.itemId) {
-            R.id.action_invite -> { return true }
+            R.id.action_invite -> {
+                val intent = Intent(this, SelectContactActivity::class.java)
+                intent.putExtra("IS_FOR_INVITE", true)
+                inviteLauncher.launch(intent)
+                return true
+            }
             R.id.action_members -> { drawerLayout.openDrawer(GravityCompat.END); return true }
         }
         return super.onOptionsItemSelected(item)
