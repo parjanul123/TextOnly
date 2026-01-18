@@ -111,7 +111,7 @@ class StoreActivity : AppCompatActivity() {
 
     private fun loadBalance() {
         val prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        userCoins = prefs.getInt("userCoins", 500)
+        userCoins = prefs.getInt("userCoins", 0)
         txtUserBalance.text = "$userCoins"
     }
 
@@ -150,7 +150,7 @@ class StoreActivity : AppCompatActivity() {
                             runOnUiThread {
                                 allStoreItems.clear()
                                 allStoreItems.addAll(items)
-                                refreshOwnedItems() // Load ownership then filter
+                                refreshOwnedItems() 
                                 filterItems(currentCategory)
                             }
                         } catch (e: Exception) {
@@ -169,11 +169,43 @@ class StoreActivity : AppCompatActivity() {
     private fun loadItemsFromLocalDb() {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(applicationContext)
-            val items = db.storeDao().getAllItems()
+            var items = db.storeDao().getAllItems()
+            
+            // --- FIX FOR PHONE 2: SEED IF EMPTY ---
+            if (items.isEmpty()) {
+                seedDefaultItems(db)
+                items = db.storeDao().getAllItems() // Reload after seeding
+            }
+            // --------------------------------------
+            
             allStoreItems.clear()
             allStoreItems.addAll(items)
             refreshOwnedItems()
             filterItems(currentCategory)
+        }
+    }
+    
+    private suspend fun seedDefaultItems(db: AppDatabase) {
+        val defaults = listOf(
+            // FRAMES
+            StoreItem(name = "Rama Neon", type = "FRAME", price = 5, resourceName = "ic_coin_shape"),
+            StoreItem(name = "Rama Ploaie", type = "FRAME", price = 8, resourceName = "ic_frame_rain"),
+            StoreItem(name = "Rama Foc", type = "FRAME", price = 10, resourceName = "frame_fire"),
+            
+            // EMOTES
+            StoreItem(name = "Happy", type = "EMOTICON", price = 2, resourceName = "emote_happy"),
+            StoreItem(name = "Cool Cat", type = "EMOTICON", price = 3, resourceName = "emote_cat"),
+            StoreItem(name = "Sad", type = "EMOTICON", price = 1, resourceName = "emote_sad"),
+            
+            // GIFTS
+            StoreItem(name = "Trandafir", type = "GIFT", price = 1, resourceName = "ic_rose"),
+            StoreItem(name = "Racheta", type = "GIFT", price = 5, resourceName = "ic_rocket"),
+            StoreItem(name = "Inimioara", type = "GIFT", price = 2, resourceName = "ic_heart"),
+            StoreItem(name = "Gift Surpriza", type = "GIFT", price = 10, resourceName = "ic_gift_card")
+        )
+        
+        defaults.forEach { item ->
+            db.storeDao().insertItem(item)
         }
     }
     

@@ -48,7 +48,7 @@ public class WalletActivity extends AppCompatActivity {
         super.onResume();
         // Load real balance from SharedPreferences
         SharedPreferences prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
-        int userCoins = prefs.getInt("userCoins", 500); // Default to 500
+        int userCoins = prefs.getInt("userCoins", 0); // Default to 500
         
         // Textul conține doar numărul
         txtCoinBalance.setText(String.valueOf(userCoins));
