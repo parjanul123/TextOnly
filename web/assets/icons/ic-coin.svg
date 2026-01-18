@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon">
+  <!-- Coin circle -->
+  <circle cx="12" cy="12" r="10" fill="#FFD700" stroke="#B8860B" stroke-width="1"/>
+  <text x="12" y="14" text-anchor="middle" font-size="10" font-weight="bold" fill="#B8860B">$</text>
+</svg>

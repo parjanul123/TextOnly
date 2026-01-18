@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon">
+  <!-- Flower decoration -->
+  <circle cx="12" cy="8" r="2"/>
+  <circle cx="18" cy="12" r="2"/>
+  <circle cx="15" cy="19" r="2"/>
+  <circle cx="9" cy="19" r="2"/>
+  <circle cx="6" cy="12" r="2"/>
+  <circle cx="12" cy="12" r="3" fill="currentColor"/>
+  <path d="M12 8v4m4-2h-4m0 0v8m0-8L9 19m3 0l3-8m0 0l6-4m-6 4l-6-4"/>
+</svg>

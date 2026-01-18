@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventar - TextOnly</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="assets/icons/icons.css">
+    <script src="assets/icons/icons.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%);
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; }
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .back-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .inventory-card {
+            background: #2d2d2d;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #00BCD4;
+            transition: all 0.3s;
+        }
+        .inventory-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 188, 212, 0.4);
+        }
+        .item-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+        .item-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .item-type {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        .item-date {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .use-btn {
+            background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        .use-btn:hover {
+            background: linear-gradient(135deg, #0097A7 0%, #00838F 100%);
+            transform: scale(1.05);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #888;
+        }
+        .empty-state i {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        .empty-state h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .go-store-btn {
+            background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .go-store-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(156, 39, 176, 0.5);
+        }
+        @media (max-width: 768px) {
+            .inventory-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+            .item-icon { font-size: 48px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🎒 Inventarul Meu</h1>
+            <button class="back-btn" onclick="location.href='profile.html'">
+                <i class="fas fa-arrow-left"></i> Înapoi
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="inventoryContainer"></div>
+    </div>
+
+    <script>
+        const userId = 1; // TODO: Get from session
+        const iconMap = {
+            'ic_frame_rain': '🌧️',
+            'frame_fire': '🔥',
+            'emote_happy': '😀',
+            'emote_cat': '🐱',
+            'emote_sad': '😢',
+            'ic_rose': '🌹',
+            'ic_heart': '❤️',
+            'ic_rocket': '🚀',
+            'ic_gift_card': '🎁'
+        };
+
+        async function loadInventory() {
+            try {
+                const response = await fetch(`/store/inventory/${userId}`);
+                const items = await response.json();
+                
+                if (items.length === 0) {
+                    document.getElementById('inventoryContainer').innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <h2>Inventarul tău este gol</h2>
+                            <p>Vizitează magazinul pentru a cumpăra iteme!</p>
+                            <button class="go-store-btn" onclick="location.href='store.html'">
+                                <i class="fas fa-store"></i> Mergi la Magazin
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const html = `
+                    <div class="inventory-grid">
+                        ${items.map(item => `
+                            <div class="inventory-card">
+                                <div class="item-icon">${iconMap[item.resourceName] || '🎨'}</div>
+                                <div class="item-name">${item.itemName}</div>
+                                <div class="item-type">${item.itemType === 'EMOTICON' ? '😀 Emoticon' : '🖼️ Frame'}</div>
+                                <div class="item-date">Achiziționat: ${formatDate(item.acquiredDate)}</div>
+                                <button class="use-btn" onclick="useItem(${item.id}, '${item.itemType}')">
+                                    <i class="fas fa-check-circle"></i> ${item.itemType === 'EMOTICON' ? 'Folosește' : 'Aplică Frame'}
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                document.getElementById('inventoryContainer').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading inventory:', error);
+                document.getElementById('inventoryContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h2>Eroare la încărcarea inventarului</h2>
+                    </div>
+                `;
+            }
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        function useItem(itemId, itemType) {
+            if (itemType === 'EMOTICON') {
+                alert('✅ Emoticon-ul poate fi folosit în chat!');
+            } else if (itemType === 'FRAME') {
+                alert('✅ Frame-ul a fost aplicat pe profilul tău!');
+                // TODO: Implement frame application logic
+            }
+        }
+
+        loadInventory();
+
+        // Regenerate inventory with icons on page load
+        setTimeout(() => {
+            const items = document.querySelectorAll('.item-card');
+            items.forEach((card, index) => {
+                const resourceName = card.dataset.resource;
+                const iconElement = card.querySelector('.item-icon');
+                if (iconElement && resourceName) {
+                    let iconHtml = '🎨';
+                    if (resourceName.includes('rose')) iconHtml = getIconHTML('rose', 'lg');
+                    else if (resourceName.includes('heart')) iconHtml = getIconHTML('heart', 'lg');
+                    else if (resourceName.includes('rocket')) iconHtml = getIconHTML('rocket', 'lg');
+                    else if (resourceName.includes('flower')) iconHtml = getIconHTML('flower', 'lg');
+                    
+                    iconElement.innerHTML = iconHtml;
+                }
+            });
+        }, 100);
+    </script>
+</body>
+</html>

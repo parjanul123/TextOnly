@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - TextOnly</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="assets/icons/icons.css">
+    <script src="assets/icons/icons.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 24px; color: #fff; }
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .back-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .avatar-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #4CAF50;
+            object-fit: cover;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #888;
+        }
+        .avatar img { width: 100%; height: 100%; border-radius: 50%; }
+        .edit-avatar {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #4CAF50;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            transition: all 0.3s;
+        }
+        .edit-avatar:hover { background: #45a049; transform: scale(1.1); }
+        .balance-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .balance-display h2 { font-size: 16px; margin-bottom: 10px; opacity: 0.9; }
+        .balance-amount {
+            font-size: 36px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .coin-icon {
+            width: 32px;
+            height: 32px;
+            background: gold;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #bbb;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: #fff;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); }
+        .btn-secondary {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: #fff;
+        }
+        .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4); }
+        .btn-wallet {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            color: #fff;
+        }
+        .btn-wallet:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4); }
+        .btn-store {
+            background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+            color: #fff;
+        }
+        .btn-store:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(156, 39, 176, 0.4); }
+        .btn-inventory {
+            background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%);
+            color: #fff;
+        }
+        .btn-inventory:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4); }
+        .btn-transactions {
+            background: linear-gradient(135deg, #607D8B 0%, #455A64 100%);
+            color: #fff;
+        }
+        .btn-transactions:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(96, 125, 139, 0.4); }
+        #fileInput { display: none; }
+        @media (max-width: 640px) {
+            .container { padding: 20px; }
+            .balance-amount { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👤 Profil</h1>
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i> Înapoi
+            </button>
+        </div>
+
+        <div class="profile-section">
+            <div class="avatar-container">
+                <div class="avatar" id="avatarPreview">
+                    <i class="fas fa-user"></i>
+                </div>
+                <button class="edit-avatar" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-camera"></i>
+                </button>
+                <input type="file" id="fileInput" accept="image/*" onchange="handleImageUpload(event)">
+            </div>
+
+            <div class="balance-display">
+                <h2>💰 Soldul tău OnlyCoins</h2>
+                <div class="balance-amount">
+                    <span id="coinBalance">0</span>
+                    <span class="coin-icon" id="coinIconProfile"></span>
+                </div>
+            </div>
+        </div>
+
+        <form id="profileForm" onsubmit="updateProfile(event)">
+            <div class="form-group">
+                <label for="displayName">Nume afișat</label>
+                <input type="text" id="displayName" placeholder="Introdu numele tău" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email (doar vizualizare)</label>
+                <input type="email" id="email" disabled>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Salvează modificările
+            </button>
+        </form>
+
+        <button class="btn btn-wallet" onclick="location.href='wallet.html'">
+            <i class="fas fa-wallet"></i> Portofel
+        </button>
+
+        <button class="btn btn-store" onclick="location.href='store.html'">
+            <i class="fas fa-store"></i> Magazin
+        </button>
+
+        <button class="btn btn-inventory" onclick="location.href='inventory.html'">
+            <i class="fas fa-box"></i> Inventar
+        </button>
+
+        <button class="btn btn-transactions" onclick="location.href='transactions.html'">
+            <i class="fas fa-receipt"></i> Jurnal Tranzacții
+        </button>
+    </div>
+
+    <script>
+        let currentUserId = 1; // TODO: Get from session
+        let profileImageUri = null;
+
+        // Load profile data
+        async function loadProfile() {
+            try {
+                const response = await fetch(`/users/profile/${currentUserId}`);
+                const data = await response.json();
+                
+                document.getElementById('displayName').value = data.displayName || '';
+                document.getElementById('email').value = data.email || '';
+                document.getElementById('coinBalance').textContent = data.coinBalance || 0;
+                
+                if (data.profileImageUri) {
+                    profileImageUri = data.profileImageUri;
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    avatarPreview.innerHTML = `<img src="${data.profileImageUri}" alt="Avatar">`;
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        // Handle image upload
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profileImageUri = e.target.result;
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Avatar">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Update profile
+        async function updateProfile(event) {
+            event.preventDefault();
+            
+            const displayName = document.getElementById('displayName').value;
+            
+            try {
+                const response = await fetch('/users/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: currentUserId,
+                        displayName: displayName,
+                        profileImageUri: profileImageUri
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ Profil actualizat cu succes!');
+                } else {
+                    alert('❌ Eroare la actualizarea profilului');
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('❌ Eroare de conexiune');
+            }
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        // Load profile on page load
+        loadProfile();
+
+        // Initialize coin icon
+        document.getElementById('coinIconProfile').innerHTML = getIconHTML('coin', 'lg');
+    </script>
+</body>
+</html>

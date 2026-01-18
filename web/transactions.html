@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tranzacții - TextOnly</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="assets/icons/icons.css">
+    <script src="assets/icons/icons.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #607D8B 0%, #455A64 100%);
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; }
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .back-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        .transactions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .transaction-card {
+            background: #2d2d2d;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        .transaction-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .transaction-card.positive {
+            border-left-color: #4CAF50;
+        }
+        .transaction-card.negative {
+            border-left-color: #f44336;
+        }
+        .transaction-info {
+            flex: 1;
+        }
+        .transaction-description {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .transaction-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #888;
+        }
+        .transaction-type {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .transaction-amount {
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .transaction-amount.positive { color: #4CAF50; }
+        .transaction-amount.negative { color: #f44336; }
+        .coin-icon {
+            width: 20px;
+            height: 20px;
+            background: gold;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #888;
+        }
+        .empty-state i {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        @media (max-width: 768px) {
+            .transaction-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .transaction-amount {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>📜 Jurnal Tranzacții</h1>
+            <button class="back-btn" onclick="location.href='profile.html'">
+                <i class="fas fa-arrow-left"></i> Înapoi
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="transactionsContainer"></div>
+    </div>
+
+    <script>
+        const userId = 1; // TODO: Get from session
+
+        const typeLabels = {
+            'PURCHASE': 'Cumpărare',
+            'GIFT_SENT': 'Cadou trimis',
+            'GIFT_RECEIVED': 'Cadou primit',
+            'BUY': 'Adăugare',
+            'SELL': 'Vânzare'
+        };
+
+        async function loadTransactions() {
+            try {
+                const response = await fetch(`/store/transactions/${userId}`);
+                const transactions = await response.json();
+                
+                if (transactions.length === 0) {
+                    document.getElementById('transactionsContainer').innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-receipt"></i>
+                            <h2>Nu există tranzacții</h2>
+                            <p>Tranzacțiile tale vor apărea aici</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const html = `
+                    <div class="transactions-list">
+                        ${transactions.map(tx => {
+                            const isPositive = tx.amount > 0;
+                            const amountClass = isPositive ? 'positive' : 'negative';
+                            const sign = isPositive ? '+' : '';
+                            
+                            return `
+                                <div class="transaction-card ${amountClass}">
+                                    <div class="transaction-info">
+                                        <div class="transaction-description">${tx.description}</div>
+                                        <div class="transaction-meta">
+                                            <span class="transaction-type">${typeLabels[tx.type] || tx.type}</span>
+                                            <span>${formatDate(tx.timestamp)}</span>
+                                        </div>
+                                    </div>
+                                    <div class="transaction-amount ${amountClass}">
+                                        <span>${sign}${tx.amount}</span>
+                                        <span class="coin-icon">🪙</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                
+                document.getElementById('transactionsContainer').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                document.getElementById('transactionsContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h2>Eroare la încărcarea tranzacțiilor</h2>
+                    </div>
+                `;
+            }
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffInMs = now - date;
+            const diffInHours = diffInMs / (1000 * 60 * 60);
+            
+            if (diffInHours < 1) {
+                const diffInMins = Math.floor(diffInMs / (1000 * 60));
+                return `Acum ${diffInMins} ${diffInMins === 1 ? 'minut' : 'minute'}`;
+            } else if (diffInHours < 24) {
+                const hours = Math.floor(diffInHours);
+                return `Acum ${hours} ${hours === 1 ? 'oră' : 'ore'}`;
+            } else {
+                return date.toLocaleDateString('ro-RO', { 
+                    day: '2-digit', 
+                    month: 'short', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        }
+
+        loadTransactions();
+
+        // Initialize icons after loading
+        setTimeout(() => {
+            const transactionItems = document.querySelectorAll('.transaction-item');
+            transactionItems.forEach(item => {
+                const priceEl = item.querySelector('.transaction-price');
+                if (priceEl && !priceEl.querySelector('img')) {
+                    const coinIcon = getIconHTML('coin', 'sm');
+                    const amount = priceEl.textContent.split(' ')[0];
+                    priceEl.innerHTML = `${amount} ${coinIcon}`;
+                }
+            });
+        }, 100);
+    </script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portofel - TextOnly</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="assets/icons/icons.css">
+    <script src="assets/icons/icons.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 28px; }
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .back-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        .balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        .balance-label {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        .balance-amount {
+            font-size: 56px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        .coin-icon {
+            width: 50px;
+            height: 50px;
+            animation: rotate 3s linear infinite;
+        }
+        .coin-icon img {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 5px 15px rgba(255, 215, 0, 0.4));
+        }
+        @keyframes rotate {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .btn {
+            padding: 18px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn i { font-size: 28px; }
+        .btn-buy {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: #fff;
+        }
+        .btn-buy:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(76, 175, 80, 0.5); }
+        .btn-sell {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: #fff;
+        }
+        .btn-sell:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(244, 67, 54, 0.5); }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: #2d2d2d;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h2 { font-size: 22px; }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #bbb;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 16px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .preview {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 15px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            transition: all 0.3s;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.5); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Portofel</h1>
+            <button class="back-btn" onclick="location.href='profile.html'">
+                <i class="fas fa-arrow-left"></i> Înapoi
+            </button>
+        </div>
+
+        <div class="balance-card">
+            <div class="balance-label">Soldul Tău</div>
+            <div class="balance-amount">
+                <span id="coinBalance">0</span>
+                <span class="coin-icon" id="coinIconContainer"></span>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-buy" onclick="openBuyModal()">
+                <i class="fas fa-plus-circle"></i>
+                <span>Adaugă Coins</span>
+            </button>
+            <button class="btn btn-sell" onclick="openSellModal()">
+                <i class="fas fa-minus-circle"></i>
+                <span>Vinde Coins</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Buy Modal -->
+    <div id="buyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💵 Cumpără OnlyCoins</h2>
+                <button class="close-btn" onclick="closeBuyModal()">&times;</button>
+            </div>
+            <form onsubmit="buyCoins(event)">
+                <div class="form-group">
+                    <label>Valută</label>
+                    <select id="buyCurrency" onchange="updateBuyPreview()">
+                        <option value="RON">RON (Lei)</option>
+                        <option value="USD">USD (Dolari)</option>
+                        <option value="EUR">EUR (Euro)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Suma</label>
+                    <input type="number" id="buyAmount" placeholder="0.00" step="0.01" min="1" required oninput="updateBuyPreview()">
+                </div>
+                <div class="preview" id="buyPreview">0 🪙 OnlyCoins</div>
+                <button type="submit" class="submit-btn">Cumpără</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sell Modal -->
+    <div id="sellModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💰 Vinde OnlyCoins</h2>
+                <button class="close-btn" onclick="closeSellModal()">&times;</button>
+            </div>
+            <form onsubmit="sellCoins(event)">
+                <div class="form-group">
+                    <label>Valută</label>
+                    <select id="sellCurrency" onchange="updateSellPreview()">
+                        <option value="RON">RON (Lei)</option>
+                        <option value="USD">USD (Dolari)</option>
+                        <option value="EUR">EUR (Euro)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>OnlyCoins de vândut</label>
+                    <input type="number" id="sellAmount" placeholder="0" min="1" required oninput="updateSellPreview()">
+                </div>
+                <div class="preview" id="sellPreview">0.00 RON</div>
+                <button type="submit" class="submit-btn">Vinde</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const userId = 1; // TODO: Get from session
+        const exchangeRates = { RON: 10, USD: 50, EUR: 55 }; // 1 coin = X currency
+
+        async function loadBalance() {
+            try {
+                const response = await fetch(`/users/balance/${userId}`);
+                const data = await response.json();
+                document.getElementById('coinBalance').textContent = data.coinBalance || 0;
+            } catch (error) {
+                console.error('Error loading balance:', error);
+            }
+        }
+
+        function openBuyModal() {
+            document.getElementById('buyModal').classList.add('active');
+        }
+
+        function closeBuyModal() {
+            document.getElementById('buyModal').classList.remove('active');
+        }
+
+        function openSellModal() {
+            document.getElementById('sellModal').classList.add('active');
+        }
+
+        function closeSellModal() {
+            document.getElementById('sellModal').classList.remove('active');
+        }
+
+        function updateBuyPreview() {
+            const currency = document.getElementById('buyCurrency').value;
+            const amount = parseFloat(document.getElementById('buyAmount').value) || 0;
+            const rate = exchangeRates[currency];
+            const coins = Math.floor(amount * rate);
+            document.getElementById('buyPreview').textContent = `${coins} 🪙 OnlyCoins`;
+        }
+
+        function updateSellPreview() {
+            const currency = document.getElementById('sellCurrency').value;
+            const coins = parseInt(document.getElementById('sellAmount').value) || 0;
+            const rate = exchangeRates[currency];
+            const money = (coins / rate).toFixed(2);
+            document.getElementById('sellPreview').textContent = `${money} ${currency}`;
+        }
+
+        async function buyCoins(event) {
+            event.preventDefault();
+            const currency = document.getElementById('buyCurrency').value;
+            const amount = parseFloat(document.getElementById('buyAmount').value);
+            const rate = exchangeRates[currency];
+            const coins = Math.floor(amount * rate);
+
+            try {
+                const response = await fetch('/store/coins/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userId,
+                        amount: coins,
+                        description: `Cumpărat ${coins} coins (${amount} ${currency})`
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert(`✅ Ai cumpărat ${coins} OnlyCoins!`);
+                    loadBalance();
+                    closeBuyModal();
+                }
+            } catch (error) {
+                console.error('Error buying coins:', error);
+                alert('❌ Eroare la cumpărare');
+            }
+        }
+
+        async function sellCoins(event) {
+            event.preventDefault();
+            const currency = document.getElementById('sellCurrency').value;
+            const coins = parseInt(document.getElementById('sellAmount').value);
+            const rate = exchangeRates[currency];
+            const money = (coins / rate).toFixed(2);
+
+            try {
+                const response = await fetch('/store/coins/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userId,
+                        amount: coins,
+                        description: `Vândut ${coins} coins pentru ${money} ${currency}`
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert(`✅ Ai vândut ${coins} OnlyCoins pentru ${money} ${currency}!`);
+                    loadBalance();
+                    closeSellModal();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error selling coins:', error);
+                alert('❌ Eroare la vânzare');
+            }
+        }
+
+        loadBalance();
+
+        // Initialize coin icon
+        document.getElementById('coinIconContainer').innerHTML = getIconHTML('coin', 'lg');
+    </script>
+</body>
+</html>
