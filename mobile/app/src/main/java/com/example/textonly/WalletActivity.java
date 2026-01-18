@@ -1,6 +1,8 @@
 package text.only.app;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
@@ -44,8 +46,11 @@ public class WalletActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // temporar sau backend
-        // Textul conține doar numărul, iconița este setată ca drawableEnd
-        txtCoinBalance.setText("0");
+        // Load real balance from SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        int userCoins = prefs.getInt("userCoins", 500); // Default to 500
+        
+        // Textul conține doar numărul
+        txtCoinBalance.setText(String.valueOf(userCoins));
     }
 }

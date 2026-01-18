@@ -70,78 +70,91 @@
         <!-- Deafen Button (Leftmost) -->
         <ImageButton
             android:id="@+id/btnDeafen"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:background="@drawable/bg_circle_button"
             android:backgroundTint="#444444"
             android:src="@drawable/ic_headset"
-            android:padding="12dp"
+            android:padding="10dp"
             android:scaleType="fitCenter"
             app:tint="#FFFFFF"
-            android:layout_marginEnd="16dp"/>
+            android:layout_marginEnd="12dp"/>
 
         <!-- Mic Button -->
         <ImageButton
             android:id="@+id/btnMic"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:background="@drawable/bg_circle_button"
             android:backgroundTint="#444444"
             android:src="@drawable/ic_mic"
-            android:padding="12dp"
+            android:padding="10dp"
             android:scaleType="fitCenter"
             app:tint="#FFFFFF"
-            android:layout_marginEnd="16dp"/>
+            android:layout_marginEnd="12dp"/>
 
         <!-- Stop Watching Button (Visible only when watching) -->
         <ImageButton
             android:id="@+id/btnStopWatching"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:background="@drawable/bg_circle_button"
             android:backgroundTint="#FF9800"
             android:src="@drawable/ic_stop_watching"
-            android:padding="12dp"
+            android:padding="10dp"
             android:scaleType="fitCenter"
             app:tint="#FFFFFF"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="12dp"
             android:visibility="gone"/>
 
         <!-- Camera Button -->
         <ImageButton
             android:id="@+id/btnCam"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:background="@drawable/bg_circle_button"
             android:backgroundTint="#444444"
             android:src="@drawable/ic_videocam_off"
-            android:padding="12dp"
+            android:padding="10dp"
             android:scaleType="fitCenter"
             app:tint="#FFFFFF"
-            android:layout_marginEnd="16dp"/>
+            android:layout_marginEnd="12dp"/>
             
          <!-- Screen Share Button -->
         <ImageButton
             android:id="@+id/btnScreenShare"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:background="@drawable/bg_circle_button"
             android:backgroundTint="#444444"
             android:src="@drawable/ic_screen_share"
-            android:padding="12dp"
+            android:padding="10dp"
             android:scaleType="fitCenter"
             app:tint="#FFFFFF"
-            android:layout_marginEnd="16dp"/>
+            android:layout_marginEnd="12dp"/>
+            
+        <!-- GIFT Button -->
+        <ImageButton
+            android:id="@+id/btnGiftVoice"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="@drawable/bg_circle_button"
+            android:backgroundTint="#FF9800"
+            android:src="@drawable/ic_gift_card"
+            android:padding="10dp"
+            android:scaleType="fitCenter"
+            app:tint="#FFFFFF"
+            android:layout_marginEnd="12dp"/>
 
         <!-- Hang Up Button -->
         <ImageButton
             android:id="@+id/btnHangUp"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:background="@drawable/bg_circle_button"
             android:backgroundTint="#F44336"
             android:src="@drawable/ic_call_end"
-            android:padding="12dp"
+            android:padding="10dp"
             android:scaleType="fitCenter"
             app:tint="#FFFFFF"/>
 

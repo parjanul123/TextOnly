@@ -62,7 +62,7 @@
             android:exported="false"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout" />
 
-        <!-- CUMPĂRARE (Asigură-te că numele este corect) -->
+        <!-- CUMPĂRARE -->
         <activity
             android:name=".BuyOnlycoinsActivity"
             android:exported="false"
@@ -109,6 +109,26 @@
         <!-- PORTOFEL (WALLET) -->
         <activity
             android:name=".WalletActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- MAGAZIN, INVENTAR, TRANZACTII -->
+        <activity
+            android:name=".StoreActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".InventoryActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".TransactionsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+            
+        <!-- ONLYGUARD -->
+        <activity
+            android:name=".OnlyGuardActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 

@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
@@ -23,6 +24,9 @@ class MessageAdapter(
         private const val TYPE_FILE_SENT = 2
         private const val TYPE_FILE_RECEIVED = 3
         private const val TYPE_INVITE_RECEIVED = 4
+        private const val TYPE_INVITE_SENT = 5
+        private const val TYPE_GIFT_SENT = 6
+        private const val TYPE_GIFT_RECEIVED = 7
     }
 
     class TextViewHolder(v: View) : RecyclerView.ViewHolder(v) { val txt: TextView = v.findViewById(R.id.textMessage) }
@@ -30,6 +34,7 @@ class MessageAdapter(
         val fileName: TextView = v.findViewById(R.id.txtFileName)
         val price: TextView? = v.findViewById(R.id.txtPrice)
         val unlock: Button? = v.findViewById(R.id.btnUnlock)
+        val imgPrice: ImageView? = v.findViewById(R.id.imgPriceIcon) // New: display cost icon
     }
     class InviteViewHolder(v: View) : RecyclerView.ViewHolder(v) {
         val serverName: TextView = v.findViewById(R.id.txtServerName)
@@ -37,23 +42,32 @@ class MessageAdapter(
         val btnAccept: Button = v.findViewById(R.id.btnAccept)
         val btnRefuse: Button = v.findViewById(R.id.btnRefuse)
     }
+    class GiftViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+        val txtGiftName: TextView = v.findViewById(R.id.txtGiftName)
+        val txtGiftValue: TextView = v.findViewById(R.id.txtGiftValue)
+        val imgGift: ImageView = v.findViewById(R.id.imgGift)
+    }
 
     override fun getItemViewType(position: Int): Int {
         return when (val msg = messages[position]) {
             is TextMessage -> if (msg.isSent) TYPE_TEXT_SENT else TYPE_TEXT_RECEIVED
             is FileMessage -> if (msg.isSent) TYPE_FILE_SENT else TYPE_FILE_RECEIVED
-            is InviteMessage -> TYPE_INVITE_RECEIVED
+            is InviteMessage -> if (msg.isSent) TYPE_INVITE_SENT else TYPE_INVITE_RECEIVED
+            is GiftMessage -> if (msg.isSent) TYPE_GIFT_SENT else TYPE_GIFT_RECEIVED
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            TYPE_TEXT_SENT -> TextViewHolder(inflater.inflate(R.layout.item_message, parent, false))
-            TYPE_TEXT_RECEIVED -> TextViewHolder(inflater.inflate(R.layout.item_message, parent, false))
+            TYPE_TEXT_SENT -> TextViewHolder(inflater.inflate(R.layout.item_message_sent, parent, false))
+            TYPE_TEXT_RECEIVED -> TextViewHolder(inflater.inflate(R.layout.item_message_received, parent, false))
             TYPE_FILE_SENT -> FileViewHolder(inflater.inflate(R.layout.item_message_file_sent, parent, false))
             TYPE_FILE_RECEIVED -> FileViewHolder(inflater.inflate(R.layout.item_message_file_received, parent, false))
             TYPE_INVITE_RECEIVED -> InviteViewHolder(inflater.inflate(R.layout.item_message_invite_received, parent, false))
+            TYPE_INVITE_SENT -> InviteViewHolder(inflater.inflate(R.layout.item_message_invite_received, parent, false)) 
+            TYPE_GIFT_SENT -> GiftViewHolder(inflater.inflate(R.layout.item_message_gift_sent, parent, false))
+            TYPE_GIFT_RECEIVED -> GiftViewHolder(inflater.inflate(R.layout.item_message_gift_received, parent, false))
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -67,16 +81,41 @@ class MessageAdapter(
             is FileMessage -> {
                 val fileHolder = holder as FileViewHolder
                 fileHolder.fileName.text = message.fileName
+                
+                // --- Display Price Logic ---
                 if (message.isSent) {
-                    fileHolder.price?.text = "Preț: ${message.price} OnlyCoins"
+                    if (message.priceUnit == null || message.priceUnit == "COINS") {
+                        fileHolder.price?.text = "Preț: ${message.price} Coins"
+                        // fileHolder.imgPrice?.setImageResource(R.drawable.onlycoin) // If layout supports it
+                    } else {
+                        fileHolder.price?.text = "Preț: ${message.price}x ${message.priceGiftName}"
+                        // If layout had an ImageView for price icon, we'd set it here using ResourceMapper
+                    }
                 } else {
-                    fileHolder.unlock?.setOnClickListener { listener.onUnlockFileRequested(message, position) }
+                    // Received File Logic
+                    if (message.isUnlocked) {
+                        fileHolder.unlock?.text = "Deschide"
+                        fileHolder.unlock?.setOnClickListener { /* Open File */ }
+                    } else {
+                        // Show "Unlock for X"
+                        if (message.priceUnit == null || message.priceUnit == "COINS") {
+                            fileHolder.unlock?.text = "Deblochează (${message.price} Coins)"
+                        } else {
+                            fileHolder.unlock?.text = "Deblochează (${message.price}x ${message.priceGiftName})"
+                        }
+                        fileHolder.unlock?.setOnClickListener { listener.onUnlockFileRequested(message, position) }
+                    }
                 }
             }
             is InviteMessage -> {
                 val inviteHolder = holder as InviteViewHolder
                 inviteHolder.serverName.text = message.serverName
                 inviteHolder.inviterName.text = "Invitat de: ${message.inviterName}"
+
+                val currentTime = System.currentTimeMillis()
+                if (message.state == InviteState.PENDING && currentTime > message.expiryTimestamp) {
+                    message.state = InviteState.EXPIRED
+                }
 
                 when (message.state) {
                     InviteState.PENDING -> {
@@ -96,7 +135,20 @@ class MessageAdapter(
                         inviteHolder.btnRefuse.text = "Refuzat"
                         inviteHolder.btnRefuse.isEnabled = false
                     }
+                    InviteState.EXPIRED -> {
+                        inviteHolder.btnAccept.visibility = View.GONE
+                        inviteHolder.btnRefuse.text = "Expirat"
+                        inviteHolder.btnRefuse.isEnabled = false
+                    }
                 }
+            }
+            is GiftMessage -> {
+                val giftHolder = holder as GiftViewHolder
+                giftHolder.txtGiftName.text = message.giftName
+                giftHolder.txtGiftValue.text = "Valoare: ${message.giftValue} Coins"
+                // Map resource name to drawable
+                val resId = ResourceMapper.getDrawableId(message.giftResource)
+                giftHolder.imgGift.setImageResource(resId)
             }
         }
     }

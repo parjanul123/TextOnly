@@ -55,11 +55,35 @@ class ServerActivity : AppCompatActivity(), MessageInteractionListener {
         if (result.resultCode == RESULT_OK) {
             val data = result.data
             val contactName = data?.getStringExtra("CONTACT_NAME")
-            if (contactName != null) {
-                val newMember = Member(contactName, listOf("Member"))
-                members.add(newMember)
-                memberAdapter.notifyItemInserted(members.size - 1)
-                Toast.makeText(this, "$contactName a fost invitat!", Toast.LENGTH_SHORT).show()
+            val contactPhone = data?.getStringExtra("CONTACT_PHONE")
+
+            if (contactName != null && contactPhone != null) {
+                lifecycleScope.launch {
+                    val db = AppDatabase.getInstance(applicationContext)
+                    
+                    // 1. Asigurăm că există conversația
+                    val conversation = ConversationEntity(contactName = contactName, contactPhone = contactPhone)
+                    db.conversationDao().insert(conversation)
+
+                    // 2. Creăm mesajul de invitație
+                    val contextId = "private_$contactPhone"
+                    val expiryTime = System.currentTimeMillis() + 7200000 // 2 ore
+                    val inviteCode = "INV-${System.currentTimeMillis()}"
+                    val serverName = intent.getStringExtra("SERVER_NAME") ?: "Server"
+
+                    val inviteMessage = MessageEntity(
+                        contextId = contextId,
+                        content = "Invitație Server: $serverName",
+                        isSent = true,
+                        type = "INVITE",
+                        inviteCode = inviteCode,
+                        inviteServerName = serverName,
+                        inviteExpiry = expiryTime
+                    )
+
+                    db.messageDao().insert(inviteMessage)
+                    Toast.makeText(this@ServerActivity, "Invitație trimisă lui $contactName!", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

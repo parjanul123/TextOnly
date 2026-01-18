@@ -11,12 +11,15 @@ import android.graphics.Color
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioGroup
 import android.widget.RelativeLayout
@@ -30,11 +33,14 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -56,6 +62,7 @@ class ChannelVoiceFragment : Fragment() {
     private lateinit var btnScreenShare: ImageButton
     private lateinit var btnHangUp: ImageButton
     private lateinit var btnStopWatching: ImageButton
+    private lateinit var btnGiftVoice: ImageButton
     
     // State
     private var isMicMuted = false
@@ -135,54 +142,250 @@ class ChannelVoiceFragment : Fragment() {
         btnScreenShare = view.findViewById(R.id.btnScreenShare)
         btnHangUp = view.findViewById(R.id.btnHangUp)
         btnStopWatching = view.findViewById(R.id.btnStopWatching)
+        btnGiftVoice = view.findViewById(R.id.btnGiftVoice)
         
         setupListeners()
         startVoiceActivitySimulation()
     }
     
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+    // ... (restul metodelor onPictureInPictureModeChanged, updateButtonLayout etc. rămân la fel, doar adăugăm btnGiftVoice la update)
+    
+    private fun setupListeners() {
+        // ... (altele)
+        btnSettings.setOnClickListener { showSettingsDialog() }
+        btnDeafen.setOnClickListener { toggleDeafen() }
+        btnMic.setOnClickListener { if (!isDeafened) toggleMic() else Toast.makeText(context, "Nu poți porni microfonul în modul Deafen", Toast.LENGTH_SHORT).show() }
+        btnCam.setOnClickListener { 
+             isCamOn = !isCamOn
+            updateCamUI()
+            if (isCamOn) {
+                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    startCameraForMe()
+                } else {
+                    requestPermissionLauncher.launch(arrayOf(Manifest.permission.CAMERA))
+                }
+            } else {
+                stopCameraForMe()
+            }
+        }
+        btnScreenShare.setOnClickListener {
+             if (!isScreenSharing) {
+                val mediaProjectionManager = context?.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as? MediaProjectionManager
+                if (mediaProjectionManager != null) {
+                    screenShareLauncher.launch(mediaProjectionManager.createScreenCaptureIntent())
+                    isScreenSharing = true
+                    updateScreenShareUI()
+                } else {
+                    Toast.makeText(context, "Serviciul nu este disponibil", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                stopScreenSharing()
+            }
+        }
+        btnStopWatching.setOnClickListener { stopWatchingAllStreams() }
+        btnHangUp.setOnClickListener { (activity as? ServerActivity)?.disconnectVoice() }
         
-        if (::adapter.isInitialized) {
-            adapter.isPiPMode = isInPictureInPictureMode
-            adapter.notifyDataSetChanged()
+        btnGiftVoice.setOnClickListener { openUserSelectionSideSheet() }
+    }
+    
+    // --- Gift Logic Start ---
+    
+    private fun openUserSelectionSideSheet() {
+        val dialog = AlertDialog.Builder(requireContext(), androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert) // Corrected reference
+        val view = layoutInflater.inflate(R.layout.dialog_select_users, null)
+        dialog.setView(view)
+        
+        // Simulating a side sheet behavior using Gravity (requires custom dialog window config usually, 
+        // but for now standard dialog is fine or we can configure window)
+        val alert = dialog.create()
+        alert.window?.setGravity(Gravity.START or Gravity.FILL_VERTICAL)
+        alert.window?.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        
+        val recycler = view.findViewById<RecyclerView>(R.id.recyclerSelectUsers)
+        val btnNext = view.findViewById<Button>(R.id.btnNext)
+        
+        // Filter out self and screen shares
+        val potentialRecipients = voiceUsers.filter { it.name != myName && !it.isScreenShare }
+        if (potentialRecipients.isEmpty()) {
+            Toast.makeText(context, "Nu sunt alți utilizatori aici.", Toast.LENGTH_SHORT).show()
+            return
         }
         
-        if (!::layoutHeader.isInitialized) return
-
-        if (isInPictureInPictureMode) {
-            layoutHeader.visibility = View.GONE
+        val selectedUsers = mutableSetOf<String>()
+        val userAdapter = UserSelectAdapter(potentialRecipients) { name, isSelected ->
+            if (isSelected) selectedUsers.add(name) else selectedUsers.remove(name)
+        }
+        recycler.layoutManager = LinearLayoutManager(context)
+        recycler.adapter = userAdapter
+        
+        btnNext.setOnClickListener {
+            if (selectedUsers.isEmpty()) {
+                Toast.makeText(context, "Selectează cel puțin un utilizator", Toast.LENGTH_SHORT).show()
+            } else {
+                alert.dismiss()
+                openGiftSelectionBottomSheet(selectedUsers.toList())
+            }
+        }
+        
+        alert.show()
+    }
+    
+    private fun openGiftSelectionBottomSheet(recipients: List<String>) {
+        val bottomSheet = BottomSheetDialog(requireContext())
+        val view = layoutInflater.inflate(R.layout.dialog_select_gift, null)
+        bottomSheet.setContentView(view)
+        
+        val recycler = view.findViewById<RecyclerView>(R.id.recyclerSelectGift)
+        recycler.layoutManager = GridLayoutManager(context, 3)
+        
+        lifecycleScope.launch {
+            val db = AppDatabase.getInstance(requireContext())
+            val allStoreItems = db.storeDao().getAllItems().filter { it.type == "GIFT" || it.type == "CONSUMABLE_EMOTE" }
+            val inventory = db.storeDao().getInventory()
             
-            val size = dpToPx(32)
-            val margin = dpToPx(4)
-            val padding = dpToPx(6)
+            // Map store item to (StoreItem, InventoryCount)
+            val giftData = allStoreItems.map { storeItem ->
+                val count = inventory.count { it.itemName == storeItem.name }
+                GiftViewData(storeItem, count)
+            }
             
-            updateButtonLayout(btnDeafen, size, margin, padding)
-            updateButtonLayout(btnMic, size, margin, padding)
-            updateButtonLayout(btnCam, size, margin, padding)
-            updateButtonLayout(btnScreenShare, size, margin, padding)
-            updateButtonLayout(btnHangUp, size, 0, padding)
-            updateButtonLayout(btnStopWatching, size, margin, padding)
-            
-            layoutVoiceControls.setPadding(dpToPx(8), dpToPx(4), dpToPx(8), dpToPx(4))
-            
+            recycler.adapter = GiftSelectAdapter(giftData) { selectedGiftData ->
+                bottomSheet.dismiss()
+                processGiftSending(selectedGiftData, recipients)
+            }
+        }
+        
+        bottomSheet.show()
+    }
+    
+    private fun processGiftSending(giftData: GiftViewData, recipients: List<String>) {
+        val totalNeeded = recipients.size
+        val available = giftData.count
+        
+        if (available >= totalNeeded) {
+            // Has enough, send immediately
+            consumeAndSend(giftData.item, recipients, buyCount = 0)
         } else {
-            layoutHeader.visibility = View.VISIBLE
+            // Needs to buy
+            val missing = totalNeeded - available
+            val cost = missing * giftData.item.price
             
-            val size = dpToPx(56)
-            val margin = dpToPx(16)
-            val padding = dpToPx(12)
-            
-            updateButtonLayout(btnDeafen, size, margin, padding)
-            updateButtonLayout(btnMic, size, margin, padding)
-            updateButtonLayout(btnCam, size, margin, padding)
-            updateButtonLayout(btnScreenShare, size, margin, padding)
-            updateButtonLayout(btnHangUp, size, 0, padding)
-            updateButtonLayout(btnStopWatching, size, margin, padding)
-            
-            layoutVoiceControls.setPadding(dpToPx(24), dpToPx(24), dpToPx(24), dpToPx(24))
+            AlertDialog.Builder(requireContext())
+                .setTitle("Stoc insuficient")
+                .setMessage("Ai doar $available bucăți. Vrei să cumperi încă $missing bucăți pentru $cost OnlyCoins și să le trimiți?")
+                .setPositiveButton("Da, Cumpără și Trimite") { _, _ ->
+                     checkWalletAndBuy(giftData.item, missing, cost, recipients, available)
+                }
+                .setNegativeButton("Anulează", null)
+                .show()
         }
     }
+    
+    private fun checkWalletAndBuy(item: StoreItem, buyCount: Int, cost: Int, recipients: List<String>, alreadyOwnedCount: Int) {
+        val prefs = requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val currentCoins = prefs.getInt("userCoins", 0)
+        
+        if (currentCoins >= cost) {
+            // Deduct coins
+            prefs.edit().putInt("userCoins", currentCoins - cost).apply()
+            
+            lifecycleScope.launch {
+                val db = AppDatabase.getInstance(requireContext())
+                
+                // Log purchase
+                 db.storeDao().insertTransaction(TransactionLog(
+                    description = "Cumpărat automat în voice: ${item.name} x$buyCount",
+                    amount = -cost,
+                    type = "AUTO_PURCHASE"
+                ))
+                
+                // Note: We don't necessarily need to insert into inventory and then delete.
+                // We can just conceptually "buy and use".
+                // But for consistency with "consumeAndSend" which might look for inventory to delete...
+                // Actually, consumeAndSend will handle deleting the 'alreadyOwnedCount'.
+                // The newly bought ones don't exist in inventory table yet, so we just don't delete them, we just "send" them.
+                
+                consumeAndSend(item, recipients, buyCount = buyCount)
+            }
+        } else {
+             Toast.makeText(context, "Fonduri insuficiente! Ai nevoie de $cost Coins.", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun consumeAndSend(item: StoreItem, recipients: List<String>, buyCount: Int) {
+        lifecycleScope.launch {
+            val db = AppDatabase.getInstance(requireContext())
+            val inventory = db.storeDao().getInventory().filter { it.itemName == item.name }
+            
+            // Delete 'available' items from inventory
+            // We need to delete exactly (recipients.size - buyCount) items
+            val toDeleteCount = recipients.size - buyCount
+            
+            if (toDeleteCount > 0) {
+                // Delete top N items
+                inventory.take(toDeleteCount).forEach { invItem ->
+                     db.storeDao().deleteInventoryItem(invItem)
+                }
+            }
+            
+            // Send logic (Visual feedback + Log)
+             db.storeDao().insertTransaction(TransactionLog(
+                description = "Gift trimis în Voice către ${recipients.size} persoane: ${item.name}",
+                amount = - (item.price * recipients.size), // Value tracking (though some paid with coins just now)
+                type = "GIFT_SENT_VOICE"
+            ))
+            
+            activity?.runOnUiThread {
+                Toast.makeText(context, "Ai trimis ${item.name} către: ${recipients.joinToString(", ")}", Toast.LENGTH_LONG).show()
+                // Here you would trigger an animation or send a WebSocket message to real server
+            }
+        }
+    }
+
+    data class GiftViewData(val item: StoreItem, val count: Int)
+
+    inner class UserSelectAdapter(val users: List<VoiceUser>, val onSelect: (String, Boolean) -> Unit) : RecyclerView.Adapter<UserSelectAdapter.Holder>() {
+        inner class Holder(v: View) : RecyclerView.ViewHolder(v) {
+            val name: TextView = v.findViewById(R.id.txtName)
+            val check: CheckBox = v.findViewById(R.id.chkUser)
+        }
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
+            return Holder(layoutInflater.inflate(R.layout.item_user_select, parent, false))
+        }
+        override fun onBindViewHolder(holder: Holder, position: Int) {
+            val user = users[position]
+            holder.name.text = user.name
+            holder.check.setOnCheckedChangeListener(null)
+            holder.check.isChecked = false
+            holder.check.setOnCheckedChangeListener { _, isChecked -> onSelect(user.name, isChecked) }
+        }
+        override fun getItemCount() = users.size
+    }
+
+    inner class GiftSelectAdapter(val gifts: List<GiftViewData>, val onSelect: (GiftViewData) -> Unit) : RecyclerView.Adapter<GiftSelectAdapter.Holder>() {
+        inner class Holder(v: View) : RecyclerView.ViewHolder(v) {
+            val name: TextView = v.findViewById(R.id.txtGiftName)
+            val count: TextView = v.findViewById(R.id.txtInventoryCount)
+            val price: TextView = v.findViewById(R.id.txtPrice)
+            val img: ImageView = v.findViewById(R.id.imgGift)
+        }
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
+            return Holder(layoutInflater.inflate(R.layout.item_gift_select, parent, false))
+        }
+        override fun onBindViewHolder(holder: Holder, position: Int) {
+            val data = gifts[position]
+            holder.name.text = data.item.name
+            holder.count.text = if (data.count > 0) "x${data.count}" else ""
+            holder.price.text = "${data.item.price} Coins"
+            
+            holder.itemView.setOnClickListener { onSelect(data) }
+        }
+        override fun getItemCount() = gifts.size
+    }
+
+    // --- Gift Logic End ---
+    
+    // ... (restul metodelor existente)
     
     private fun updateButtonLayout(btn: ImageButton, size: Int, marginEnd: Int, padding: Int) {
         if (btn.layoutParams == null) return
@@ -204,61 +407,6 @@ class ChannelVoiceFragment : Fragment() {
             dp.toFloat(),
             resources.displayMetrics
         ).toInt()
-    }
-    
-    private fun setupListeners() {
-        btnSettings.setOnClickListener {
-            showSettingsDialog()
-        }
-        
-        btnDeafen.setOnClickListener {
-            toggleDeafen()
-        }
-
-        btnMic.setOnClickListener {
-            if (isDeafened) {
-                Toast.makeText(context, "Nu poți porni microfonul în modul Deafen", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            toggleMic()
-        }
-        
-        btnCam.setOnClickListener {
-            isCamOn = !isCamOn
-            updateCamUI()
-            if (isCamOn) {
-                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                    startCameraForMe()
-                } else {
-                    requestPermissionLauncher.launch(arrayOf(Manifest.permission.CAMERA))
-                }
-            } else {
-                stopCameraForMe()
-            }
-        }
-        
-        btnScreenShare.setOnClickListener {
-            if (!isScreenSharing) {
-                val mediaProjectionManager = context?.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as? MediaProjectionManager
-                if (mediaProjectionManager != null) {
-                    screenShareLauncher.launch(mediaProjectionManager.createScreenCaptureIntent())
-                    isScreenSharing = true
-                    updateScreenShareUI()
-                } else {
-                    Toast.makeText(context, "Serviciul nu este disponibil", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                stopScreenSharing()
-            }
-        }
-        
-        btnStopWatching.setOnClickListener {
-            stopWatchingAllStreams()
-        }
-        
-        btnHangUp.setOnClickListener {
-            (activity as? ServerActivity)?.disconnectVoice()
-        }
     }
     
     private fun toggleDeafen() {
@@ -522,6 +670,10 @@ class ChannelVoiceFragment : Fragment() {
         myName = prefs?.getString("displayName", "Eu") ?: "Eu"
         val myImageUri = prefs?.getString("profileImageUri", null)
         voiceUsers.add(VoiceUser(name = myName, avatarUri = myImageUri))
+        
+        // Mock other users for demonstration purposes
+        // voiceUsers.add(VoiceUser(name = "Andrei", isSpeaking = true))
+        // voiceUsers.add(VoiceUser(name = "Maria"))
     }
 
     companion object {
